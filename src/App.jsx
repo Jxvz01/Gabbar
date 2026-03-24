@@ -12,22 +12,40 @@ const STATUSES = ['Under Review', 'Resolved', 'Pending'];
 
 const LandingPage = ({ onJoin }) => {
   return (
-    <div className="landing-master anim-fade-in">
-      <div className="ambient-bg"></div>
+    <div className="landing-master">
+      <div className="ambient-bg">
+        <div className="ambient-orb blue"></div>
+        <div className="ambient-orb purple"></div>
+      </div>
+      <div className="noise-overlay"></div>
       
       {/* 🧱 HERO SECTION (FULL SCREEN, NO CLUTTER) */}
       <section className="hero-v6">
         <motion.div 
-          initial={{ opacity: 0, scale: 0.98, y: 10 }}
+          initial={{ opacity: 0, scale: 0.96, y: 30 }}
           whileInView={{ opacity: 1, scale: 1, y: 0 }}
-          transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 1.4, ease: [0.16, 1, 0.3, 1] }}
           className="container-v6 v-stack"
         >
-          <h1 className="hero-h1-v6">Speak Freely.<br/>Stay Anonymous.</h1>
+          <h1 className="hero-h1-v6 glow-text">Speak Freely.<br/>Stay Anonymous.</h1>
           <p className="hero-p-v6">A secure platform for students to report issues without fear. We bridge the gap between intelligence and action with total privacy.</p>
-          <div className="flex-v6" style={{ marginTop: '16px' }}>
-            <button className="btn-v6 primary" onClick={() => onJoin('auth', 'signup')}>Enter Platform</button>
-            <button className="btn-v6 secondary" onClick={() => onJoin('auth', 'login')}>Login</button>
+          <div className="flex-v6">
+            <motion.button 
+              whileHover={{ y: -3, scale: 1.05 }} 
+              whileTap={{ scale: 0.98 }}
+              className="btn-v6 primary" 
+              onClick={() => onJoin('auth', 'signup')}
+            >
+              Enter Platform
+            </motion.button>
+            <motion.button 
+              whileHover={{ y: -3, scale: 1.05 }} 
+              whileTap={{ scale: 0.98 }}
+              className="btn-v6 secondary" 
+              onClick={() => onJoin('auth', 'login')}
+            >
+              Login
+            </motion.button>
           </div>
         </motion.div>
       </section>
@@ -80,11 +98,12 @@ const LandingPage = ({ onJoin }) => {
       </section>
 
       {/* 🎯 FINAL CTA SECTION */}
-      <section className="container-v6" style={{ paddingBottom: '160px' }}>
+      <section className="section-v6" style={{ paddingBottom: '200px' }}>
          <motion.div 
-           initial={{ opacity: 0, scale: 0.95 }}
-           whileInView={{ opacity: 1, scale: 1 }}
-           transition={{ duration: 1 }}
+           initial={{ opacity: 0, y: 50, scale: 0.95 }}
+           whileInView={{ opacity: 1, y: 0, scale: 1 }}
+           transition={{ duration: 1.2 }}
+           viewport={{ once: true }}
            className="cta-v6"
          >
             <h2 className="cta-h2-v6">Your voice matters.<br/>Stay protected.</h2>
@@ -92,8 +111,8 @@ const LandingPage = ({ onJoin }) => {
          </motion.div>
       </section>
 
-      <footer className="footer-master" style={{ background: 'transparent', border: 'none' }}>
-         <p style={{ fontSize: '12px', opacity: 0.5, letterSpacing: '2px' }}>© 2024 GABBAR | ANONYMOUS INTELLIGENCE HUB</p>
+      <footer className="footer-master">
+         <p className="footer-text">© 2024 GABBAR | ANONYMOUS INTELLIGENCE HUB</p>
       </footer>
     </div>
   );
