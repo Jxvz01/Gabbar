@@ -8,350 +8,92 @@ const STATUSES = ['Under Review', 'Resolved', 'Pending'];
 
 // --- COMPONENTS ---
 
-const DataFragments = () => (
-  <div className="data-fragment-container">
-    {[...Array(40)].map((_, i) => (
-      <motion.div 
-        key={i}
-        className="data-fragment"
-        initial={{ y: "110vh", x: Math.random() * 100 + "%", opacity: 0 }}
-        animate={{ y: "-10vh", opacity: [0, 0.5, 0] }}
-        transition={{ 
-          duration: Math.random() * 10 + 10, 
-          repeat: Infinity, 
-          delay: Math.random() * 5 
-        }}
-      >
-        {Math.random().toString(16).slice(2, 6).toUpperCase()}
-      </motion.div>
-    ))}
-  </div>
-);
-
-const HexMatrix = ({ color = 'var(--primary)' }) => (
-  <div className="hex-matrix-v6" style={{ color }}>
-    {[...Array(18)].map((_, i) => (
-      <motion.span 
-        key={i}
-        animate={{ opacity: [0.1, 0.4, 0.1] }}
-        transition={{ duration: Math.random() * 2 + 1, repeat: Infinity, delay: Math.random() }}
-      >
-        {Math.floor(Math.random() * 16).toString(16).toUpperCase()}
-      </motion.span>
-    ))}
-  </div>
-);
-
-const CyberGlobe = () => (
-  <div className="globe-wrapper">
-    <div className="globe-core"></div>
-    <div className="globe-ring r1"></div>
-    <div className="globe-ring r2"></div>
-    <div className="globe-ring r3"></div>
-    <svg className="globe-svg" viewBox="0 0 100 100">
-      <circle cx="50" cy="50" r="48" fill="none" stroke="var(--primary)" strokeWidth="0.2" strokeDasharray="1,2" />
-      <path d="M50 2 L50 98 M2 50 L98 50" stroke="var(--primary)" strokeWidth="0.1" opacity="0.3" />
-    </svg>
-    <div className="globe-point p1"></div>
-    <div className="globe-point p2"></div>
-    <div className="globe-point p3"></div>
-  </div>
-);
+// --- COMPONENTS ---
 
 const LandingPage = ({ onJoin }) => {
-  const [storyIndex, setStoryIndex] = useState(0);
-  const story = [
-    { text: "Somewhere in the shadows of the campus...", sub: "Whispers of truth remain unheard." },
-    { text: "Where the power of hierarchy silences the brave...", sub: "Fear of retaliation is real." },
-    { text: "But anonymity changes everything.", sub: "A decentralized hub for collective intelligence." },
-    { text: "SPEAK FREELY.", sub: "STAY ANONYMOUS." }
-  ];
-
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-
-  useEffect(() => {
-    const handleMouse = (e) => setMousePos({ x: e.clientX, y: e.clientY });
-    window.addEventListener('mousemove', handleMouse);
-    return () => window.removeEventListener('mousemove', handleMouse);
-  }, []);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setStoryIndex(prev => (prev < story.length - 1 ? prev + 1 : prev));
-    }, 3500); 
-    return () => clearInterval(timer);
-  }, []);
-
   return (
-    <div className="landing-master page-transition">
+    <div className="landing-master anim-fade-in">
       <div className="ambient-bg"></div>
-      <div 
-        className="mouse-spotlight" 
-        style={{ 
-          background: `radial-gradient(600px circle at ${mousePos.x}px ${mousePos.y}px, rgba(59, 130, 246, 0.06), transparent 40%)` 
-        }}
-      ></div>
       
-      <div className="hex-background"></div>
-      <div className="circuit-lines"></div>
-      <DataFragments />
-      
-      {/* IMMERSIVE HERO SECTION */}
-      <section className="hero-section immersive-hero">
-        <div className="hero-corners">
-          <div className="hero-corner tl"><div className="corner-tag">UPLINK_01</div><div className="corner-val">SECURE</div></div>
-          <div className="hero-corner tr"><div className="corner-tag">ENCR_V14</div><div className="corner-val">ACTIVE</div></div>
-          <div className="hero-corner bl"><div className="corner-tag">LAT_MS</div><div className="corner-val">04ms</div></div>
-          <div className="hero-corner br"><div className="corner-tag">NODES</div><div className="corner-val">84+</div></div>
-        </div>
-        <div className="central-scanline"></div>
-
-        <div className="hero-globe-anchor">
-          <CyberGlobe />
-        </div>
-        <div className="telemetry-sidebar left">
-          <div className="tel-item"><span className="tel-label">UPLINK:</span> <span className="tel-val">STABLE</span></div>
-          <div className="tel-item"><span className="tel-label">LATENCY:</span> <span className="tel-val">12ms</span></div>
-          <div className="tel-item"><span className="tel-label">PACKETS:</span> <span className="tel-val">842/s</span></div>
-          <div className="tel-graph"></div>
-        </div>
-        <div className="telemetry-sidebar right">
-          <div className="tel-item"><span className="tel-label">VERSION:</span> <span className="tel-val">v4.5.12</span></div>
-          <div className="tel-item"><span className="tel-label">ENCRYPTION:</span> <span className="tel-val">RSA_4096</span></div>
-          <div className="tel-item"><span className="tel-label">ANONYMITY:</span> <span className="tel-val">MAX</span></div>
-          <div className="tel-graph alt"></div>
-        </div>
-
-        <div className="intel-ticker">
-          <div className="ticker-track">
-            <span>[ INTEL_01: SUSPICIOUS DRONE DETECTED ]</span>
-            <span>[ INTEL_02: FACILITY_Z4 OFFLINE ]</span>
-            <span>[ INTEL_03: NEW REPORT SUBMITTED FROM WING_C ]</span>
-            <span>[ INTEL_04: ENCRYPTION_SYNC COMPLETE ]</span>
-            <span>[ INTEL_05: SYSTEM_OPERATIVE JOINED ]</span>
+      {/* 🧱 HERO SECTION (FULL SCREEN, NO CLUTTER) */}
+      <section className="hero-v6">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.98, y: 10 }}
+          whileInView={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+          className="container-v6 v-stack"
+        >
+          <h1 className="hero-h1-v6">Speak Freely.<br/>Stay Anonymous.</h1>
+          <p className="hero-p-v6">A secure platform for students to report issues without fear. We bridge the gap between intelligence and action with total privacy.</p>
+          <div className="flex-v6" style={{ marginTop: '16px' }}>
+            <button className="btn-v6 primary" onClick={() => onJoin('auth', 'signup')}>Enter Platform</button>
+            <button className="btn-v6 secondary" onClick={() => onJoin('auth', 'login')}>Login</button>
           </div>
-        </div>
+        </motion.div>
+      </section>
 
-        <motion.div 
-          className="hero-bg-zoom"
-          initial={{ scale: 1.3, opacity: 0, filter: 'brightness(0.3) contrast(1.1) blur(10px)' }}
-          animate={{ scale: 1.0, opacity: 1, filter: 'brightness(0.4) contrast(1.2) blur(0px)' }}
-          transition={{ duration: 1.5, ease: "easeOut" }}
-          style={{ backgroundImage: `url('/cinematic_campus_bg_1774201838558.png')` }}
-        />
-        <motion.div 
-          className="hero-bg-zoom secondary-zoom"
-          initial={{ scale: 1.0 }}
-          animate={{ scale: 1.2 }}
-          transition={{ duration: 6, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" }}
-          style={{ backgroundImage: `url('/cinematic_campus_bg_1774201838558.png')`, opacity: 0.25 }}
-        />
-        <div className="hero-overlay-v5"></div>
-        <div className="scanlines"></div>
-        <div className="noise"></div>
-        <div className="scanning-line"></div>
-        
-        <div className="hero-progress-container">
-          {story.map((_, i) => (
-            <div key={i} className={`progress-segment ${i <= storyIndex ? 'active' : ''}`}>
+      {/* 🧊 TRUST SECTION */}
+      <section className="section-v6">
+        <div className="container-v6">
+          <div className="flex-v6">
+            {[
+              { t: '100% Anonymous', d: 'Your identity is never stored in our reporting infrastructure.' },
+              { t: 'Secure & Private', d: 'End-to-end encryption for every submission and attachment.' },
+              { t: 'Actionable Reports', d: 'Direct line to administration for rapid issue resolution.' }
+            ].map((item, i) => (
               <motion.div 
-                className="progress-fill" 
-                initial={{ width: 0 }}
-                animate={{ width: i === storyIndex ? "100%" : (i < storyIndex ? "100%" : "0%") }}
-                transition={{ duration: i === storyIndex ? 3 : 0, ease: "linear" }}
-              />
-            </div>
-          ))}
-        </div>
-        
-        <div className="hero-container storytelling-container">
-          <AnimatePresence mode="wait">
-            <motion.div 
-              key={storyIndex}
-              initial={{ opacity: 0, y: 20, filter: 'blur(8px)', scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, filter: 'blur(0px)', scale: 1 }}
-              exit={{ opacity: 0, y: -20, filter: 'blur(8px)', scale: 1.05 }}
-              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-              className="story-slide"
-            >
-              {storyIndex === story.length - 1 ? (
-                <motion.h1 
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="hero-h1 final-reveal"
-                >
-                  {story[storyIndex].text.split("").map((char, i) => (
-                    <motion.span 
-                      key={i}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: i * 0.05 }}
-                    >
-                      {char}
-                    </motion.span>
-                  ))}<br/>
-                  <span className="hero-span"> {story[storyIndex].sub}</span>
-                </motion.h1>
-              ) : (
-                <div className="story-content">
-                  <h2 className="story-h2">
-                    {story[storyIndex].text.split("").map((char, i) => (
-                      <motion.span 
-                        key={`${storyIndex}-${i}`}
-                        initial={{ opacity: 0, filter: 'blur(10px)' }}
-                        animate={{ opacity: 1, filter: 'blur(0px)' }}
-                        transition={{ delay: i * 0.03 }}
-                      >
-                        {char}
-                      </motion.span>
-                    ))}
-                  </h2>
-                  <p className="story-p">{story[storyIndex].sub}</p>
-                </div>
-              )}
-            </motion.div>
-          </AnimatePresence>
-
-          <div className="hero-btns permanent-btns">
-            <button className="btn-main primary hover-glow" onClick={() => onJoin('auth', 'login')}>ENTER COMMAND</button>
-            <button className="btn-main secondary hover-glow" onClick={() => onJoin('auth', 'signup')}>ESTABLISH CONNECTION</button>
+                key={i}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.15, duration: 1 }}
+                viewport={{ once: true }}
+                className="trust-card-v6"
+              >
+                <div className="step-icon-v6" style={{ fontSize: '14px', letterSpacing: '2px', color: 'var(--text-dim)' }}>0{i+1}</div>
+                <h3 style={{ marginBottom: '16px', fontSize: '24px', fontWeight: '700' }}>{item.t}</h3>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '15px', lineHeight: '1.8', fontWeight: '300' }}>{item.d}</p>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* SYSTEM PROTOCOLS - BENTO GRID RE-LAYOUT */}
-      <section className="info-section container anim-fade-in">
-        <div className="section-grid"></div>
-        <div className="section-side-beam left"></div>
-        <div className="section-side-beam right"></div>
-        <h2 className="section-title">SYSTEM INFRASTRUCTURE</h2>
-        <div className="bento-grid">
-            <motion.div 
-              whileHover={{ y: -5 }}
-              className="bento-item main glass-v3"
-            >
-               <HexMatrix color="var(--primary)" />
-               <div className="card-corner tl"></div>
-               <div className="card-corner tr"></div>
-               <div className="card-corner bl"></div>
-               <div className="card-corner br"></div>
-               <div className="icon-v3">01 / AUTH</div>
-               <h3>IDENTITY DECOUPLING</h3>
-               <p>When you authenticate, our Zero-Knowledge architecture generates a transient session token. Your real-world identity is purged from the reporting metadata instantly. We utilize a decentralized authentication hub to ensure that no single server holds both your identity and your intel.</p>
-               <div className="bento-visual auth-v">
-                  <div className="visual-readout">DECRYPTING_SESSION...</div>
+      {/* ⚙️ HOW IT WORKS (CLEAN, LINEAR FLOW) */}
+      <section className="section-v6" style={{ borderTop: '1px solid var(--glass-border)' }}>
+        <div className="container-v6">
+          <h2 style={{ textAlign: 'center', marginBottom: '100px', fontSize: '42px', fontWeight: '800', letterSpacing: '-0.02em' }}>The Intelligence Pathway</h2>
+          <div className="flex-v6" style={{ position: 'relative' }}>
+             <div className="flow-line-v6"></div>
+             {[
+               { t: 'Login Securely', d: 'Authenticated via Zero-Knowledge protocols.' },
+               { t: 'Submit Report', d: 'Pure data transfer without metadata tracking.' },
+               { t: 'Admins Review', d: 'Rapid response via our encrypted feed.' }
+             ].map((step, i) => (
+               <div key={i} className="step-v6">
+                 <div className="step-icon-v6">{i + 1}</div>
+                 <h4 style={{ marginBottom: '12px', fontSize: '18px', fontWeight: '600' }}>{step.t}</h4>
+                 <p style={{ color: 'var(--text-dim)', fontSize: '14px', lineHeight: '1.6' }}>{step.d}</p>
                </div>
-            </motion.div>
-           
-           <div className="bento-subgrid">
-              <motion.div 
-                whileHover={{ scale: 1.02 }}
-                className="bento-item sub glass-v3"
-              >
-                  <HexMatrix color="var(--accent-emerald)" />
-                  <div className="card-corner tl"></div>
-                  <div className="card-corner tr"></div>
-                  <div className="card-corner bl"></div>
-                  <div className="card-corner br"></div>
-                  <div className="icon-v3 small" style={{color: 'var(--accent-emerald)'}}>02 / INTEL</div>
-                  <h3>ENCRYPTED SUBMISSION</h3>
-                  <p>Every report is treated as high-priority intelligence. Attachments are stored in isolated vaults.</p>
-                  <div className="bento-visual emerald small"></div>
-              </motion.div>
-              <motion.div 
-                whileHover={{ scale: 1.02 }}
-                className="bento-item sub glass-v3"
-              >
-                  <HexMatrix color="var(--accent-amber)" />
-                  <div className="card-corner tl"></div>
-                  <div className="card-corner tr"></div>
-                  <div className="card-corner bl"></div>
-                  <div className="card-corner br"></div>
-                  <div className="icon-v3 small" style={{color: 'var(--accent-amber)'}}>03 / ACTION</div>
-                  <h3>FEEDBACK LOOP</h3>
-                  <p>Track the status of your intel through the decentralized feed in real-time.</p>
-                  <div className="bento-visual amber small"></div>
-              </motion.div>
-           </div>
-
-           <motion.div 
-             whileHover={{ y: -5 }}
-             className="bento-item accent glass-v3"
-           >
-              <HexMatrix color="var(--accent-purple)" />
-              <div className="card-corner tl"></div>
-              <div className="card-corner tr"></div>
-              <div className="card-corner bl"></div>
-              <div className="card-corner br"></div>
-              <div className="icon-v3" style={{color: 'var(--accent-purple)'}}>04 / CORE</div>
-              <h3>SYSTEM INTEGRITY</h3>
-              <p>Our codebase is optimized for absolute anonymity. We don't just hide your name; we prevent the system from ever knowing it.</p>
-              <div className="bento-stats-box">
-                 <div className="bsb-row"><span>UPTIME</span> 99.99%</div>
-                 <div className="bsb-row"><span>RESOLVED</span> 2.4k+</div>
-              </div>
-              <div className="bento-visual purple"></div>
-           </motion.div>
+             ))}
+          </div>
         </div>
       </section>
 
-      {/* WHY ANONYMITY MATTERS */}
-      <section className="info-section container anim-fade-in">
-        <div className="section-grid"></div>
-        <div className="section-side-beam left"></div>
-        <div className="section-side-beam right"></div>
-        <div className="dual-grid-v5">
-           <div className="text-box">
-              <h2 className="section-title left">THE WALL OF SILENCE</h2>
-              <p className="text-p">In traditional systems, the whistleblower often becomes the victim. Hierarchy creates a barrier of fear that suppresses critical institutional growth. <br/><br/><strong>GABBAR</strong> dismantles this barrier. We believe that for a campus to thrive, truth must flow upwards without the weight of retaliation.</p>
-           </div>
-           <motion.div 
-             initial={{ opacity: 0, x: 20 }}
-             whileInView={{ opacity: 1, x: 0 }}
-             className="info-card glass-v3 accent-border spotlight-card"
-           >
-              <div className="card-corner tl"></div>
-              <div className="card-corner tr"></div>
-              <div className="card-corner bl"></div>
-              <div className="card-corner br"></div>
-              <div className="shield-icon"></div>
-              <h3>BUILT FOR PROTECTION</h3>
-              <p>Our codebase is optimized for one thing: <strong>Absolute Anonymity.</strong> We don't just hide your name; we prevent the system from ever knowing it in the first place.</p>
-           </motion.div>
-        </div>
+      {/* 🎯 FINAL CTA SECTION */}
+      <section className="container-v6" style={{ paddingBottom: '160px' }}>
+         <motion.div 
+           initial={{ opacity: 0, scale: 0.95 }}
+           whileInView={{ opacity: 1, scale: 1 }}
+           transition={{ duration: 1 }}
+           className="cta-v6"
+         >
+            <h2 className="cta-h2-v6">Your voice matters.<br/>Stay protected.</h2>
+            <button className="btn-v6 primary" onClick={() => onJoin('auth', 'signup')}>Get Started</button>
+         </motion.div>
       </section>
 
-      {/* FOR ADMINISTRATION */}
-      <section className="info-section container admin-cta anim-fade-in">
-        <div className="section-grid"></div>
-        <div className="section-side-beam left"></div>
-        <div className="section-side-beam right"></div>
-        <div className="glass-v3 admin-box-v5">
-           <div className="admin-content">
-              <h2>COMMAND & CONTROL</h2>
-              <p>For the administration, GABBAR is a precision tool. It transforms whispers into actionable data. Identify systemic failures, monitor facility health, and bridge the gap between students and leaders with transparency that builds genuine trust.</p>
-              <div className="admin-stats-peek">
-                 <div className="sp-item"><span>99%</span> RESOLUTION RATE</div>
-                 <div className="sp-item"><span>0.0ms</span> IDENTITY LEAK</div>
-              </div>
-              <button className="btn-main primary hover-glow">REQUEST COMMAND ACCESS</button>
-           </div>
-        </div>
-      </section>
-
-      {/* GLOBAL HUD STATS */}
-      <section className="info-section container anim-fade-in stats-compact">
-        <div className="stats-ticker-v5">
-           <div className="st-item"><span style={{color:'var(--primary)'}}>UPLINK</span> SECURE</div>
-           <div className="st-item"><span style={{color:'var(--accent-purple)'}}>ENCR</span> AES_256</div>
-           <div className="st-item"><span style={{color:'var(--accent-emerald)'}}>NODES</span> 142 ACTIVE</div>
-           <div className="st-item"><span style={{color:'var(--warning)'}}>TRAFFIC</span> 4.2 GB/H</div>
-        </div>
-      </section>
-
-      <footer className="footer-master">
-         <div className="footer-line"></div>
-         <p>© 2024 GABBAR | ANONYMOUS INTELLIGENCE HUB</p>
+      <footer className="footer-master" style={{ background: 'transparent', border: 'none' }}>
+         <p style={{ fontSize: '12px', opacity: 0.5, letterSpacing: '2px' }}>© 2024 GABBAR | ANONYMOUS INTELLIGENCE HUB</p>
       </footer>
     </div>
   );
