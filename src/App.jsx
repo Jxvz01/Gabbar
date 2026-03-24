@@ -668,7 +668,6 @@ const SystemBoot = ({ onComplete }) => {
 };
 
 const App = () => {
-  const [theme, setTheme] = useState('dark');
   const [view, setView] = useState('landing');
   const [isBooting, setIsBooting] = useState(false);
   const [userRole, setUserRole] = useState('Student');
@@ -709,10 +708,7 @@ const App = () => {
   };
 
   return (
-    <div className={`app-v3 ${theme}-mode`}>
-      <button className="theme-toggle-fixed" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
-        {theme === 'dark' ? '☀️ SIGNAL MODE' : '🌙 STEALTH OPS'}
-      </button>
+    <div className="app-v3 dark-mode">
       {isBooting && <SystemBoot onComplete={handleBootComplete} />}
       {!isBooting && (
         <>

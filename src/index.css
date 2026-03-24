@@ -24,27 +24,6 @@
   --header-bg: rgba(5, 7, 9, 0.8);
 }
 
-.light-mode {
-  --bg-primary: #F8FAFC;
-  --bg-secondary: #FFFFFF;
-  --glass: rgba(15, 23, 42, 0.04);
-  --glass-border: rgba(15, 23, 42, 0.12);
-  --primary: #0F172A;
-  --secondary: #2563EB;
-  --accent-cyan: #0EA5E9;
-  --accent-purple: #D946EF;
-  --accent-amber: #F59E0B;
-  --accent-emerald: #10B981;
-  --text-primary: #0F172A;
-  --text-secondary: #334155;
-  --text-dim: #64748B;
-  --critical: #EF4444;
-  --warning: #F59E0B;
-  --resolved: #10B981;
-  --info: #2563EB;
-  --header-bg: rgba(248, 250, 252, 0.95);
-}
-
 * { box-sizing: border-box; margin: 0; padding: 0; border: none; background: none; outline: none; }
 body { background: var(--bg-primary); color: var(--text-primary); font-family: var(--font-body); overflow: hidden; height: 100vh; -webkit-font-smoothing: antialiased; }
 
@@ -102,17 +81,6 @@ body { background: var(--bg-primary); color: var(--text-primary); font-family: v
   border: 1px solid var(--glass-border);
 }
 
-.theme-toggle-fixed {
-  position: fixed; top: 32px; right: 32px; z-index: 9999;
-  padding: 12px 24px; border-radius: 4px; border: 1px solid var(--glass-border);
-  background: var(--glass); color: var(--text-primary);
-  font-family: var(--font-headline); letter-spacing: 0.1em;
-  cursor: pointer; backdrop-filter: blur(12px);
-  transition: 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
-  font-size: 13px; font-weight: 500; display: block;
-}
-.theme-toggle-fixed:hover { transform: translateY(-2px); border-color: var(--primary); background: var(--bg-secondary); }
-
 /* LANDING: SERIOUS & TRUSTED */
 .landing-master { height: 100vh; overflow-y: auto; scroll-behavior: smooth; background: var(--bg-primary); position: relative; }
 
@@ -137,9 +105,6 @@ body { background: var(--bg-primary); color: var(--text-primary); font-family: v
   position: absolute; inset: 0; background-size: cover; background-position: center;
   z-index: 1; opacity: 0.4; pointer-events: none;
 }
-.light-mode .hero-bg-zoom { filter: brightness(1.2) contrast(0.9) saturate(1.5); opacity: 0.12; }
-.light-mode .scanning-line { background: rgba(15, 23, 42, 0.1); }
-.light-mode .scanlines::before { background: linear-gradient(rgba(15, 23, 42, 0.05) 50%, transparent 50%); }
 
 .hero-overlay-v5 { 
   position: absolute; inset: 0; 
@@ -292,9 +257,7 @@ padding: 16px 36px; border-radius: 4px; font-size: 13px; font-weight: 700; curso
 }
 
 .hero-corners { position: absolute; inset: 30px; pointer-events: none; z-index: 20; border: 1px solid rgba(59, 130, 246, 0.1); border-radius: 40px; }
-.light-mode .hero-corners { border-color: rgba(15, 23, 42, 0.1); }
 .hero-corner { position: absolute; width: 120px; height: 120px; border: 1px solid var(--glass-border); display: flex; flex-direction: column; justify-content: center; padding: 25px; transition: 0.3s; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); }
-.light-mode .hero-corner { background: rgba(255,255,255,0.9); border: 1px solid rgba(15, 23, 42, 0.2); box-shadow: 0 10px 40px rgba(0,0,0,0.05); }
 .hero-corner.tl { top: 0; left: 0; border-right: none; border-bottom: none; border-radius: 20px 0 0 0; border-top: 3px solid var(--primary); border-left: 3px solid var(--primary); box-shadow: -10px -10px 30px rgba(59, 130, 246, 0.2); }
 .hero-corner.tr { top: 0; right: 0; border-left: none; border-bottom: none; border-radius: 0 20px 0 0; border-top: 3px solid var(--primary); border-right: 3px solid var(--primary); box-shadow: 10px -10px 30px rgba(59, 130, 246, 0.2); }
 .hero-corner.bl { bottom: 0; left: 0; border-right: none; border-top: none; border-radius: 0 0 0 20px; border-bottom: 3px solid var(--primary); border-left: 3px solid var(--primary); box-shadow: -10px 10px 30px rgba(59, 130, 246, 0.2); }
@@ -389,7 +352,6 @@ padding: 16px 36px; border-radius: 4px; font-size: 13px; font-weight: 700; curso
   transform: scaleX(0); transition: 0.4s; transform-origin: left;
 }
 .bento-item:hover { transform: translateY(-5px); background: rgba(255,255,255,0.06); border-color: rgba(59, 130, 246, 0.3); }
-.light-mode .bento-item:hover { background: rgba(0,0,0,0.02); box-shadow: 0 10px 40px rgba(15, 23, 42, 0.1); }
 .bento-item:hover::before { transform: scaleX(1); }
 
 .bento-item h3 { font-family: var(--font-headline); font-size: 24px; font-weight: 400; margin-bottom: 16px; color: var(--text-primary); letter-spacing: 0.05em; }
