@@ -351,7 +351,7 @@ const LandingPage = ({ onJoin }) => {
 
       <footer className="footer-master">
          <div className="footer-line"></div>
-         <p>© 2026 PROTO-GABBAR v4.5 | ENCRYPTED | SECURE</p>
+         <p>© 2024 GABBAR | ANONYMOUS INTELLIGENCE HUB</p>
       </footer>
     </div>
   );

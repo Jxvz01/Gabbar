@@ -61,4 +61,4 @@ npm run dev
 
 ---
 
-© 2026 **PROTO-GABBAR v6.0** | Anonymous Intelligence Hub | [Jxvz01](https://github.com/Jxvz01)
+© 2024 **GABBAR** | Anonymous Intelligence Hub
