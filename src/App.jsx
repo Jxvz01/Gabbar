@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, memo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   TrendingUp, Clock, BarChart2, Bell, User, Plus, LogOut, 
@@ -164,6 +164,61 @@ const SystemTerminal = () => {
   );
 };
 
+const SidePanel = memo(({ reports, topReports }) => (
+  <aside className="side-info-v7" style={{ width: '100%' }}>
+    <section className="side-sec-v7">
+      <h4 style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13px', color: '#fff', marginBottom: '24px' }}>
+        <TrendingUp size={16} color="var(--primary)" /> HIGH_DENSITY_INTEL
+      </h4>
+      <div className="v-stack" style={{ gap: '16px' }}>
+        {(topReports || []).map(r => (
+          <div 
+            key={r.id} 
+            className="side-preview-v18 v-stack" 
+            style={{ gap: '8px', cursor: 'pointer', textAlign: 'left', alignItems: 'flex-start', width: '100%' }}
+          >
+            <div className="flex-v6" style={{ width: '100%', justifyContent: 'space-between', gap: '6px' }}>
+              <div style={{ color: 'var(--primary)', fontWeight: '800', fontSize: '10px' }}>#{r.id}</div>
+              <div className="badge-v7 status" style={{ margin: 0 }}>{r.category.toUpperCase()}</div>
+            </div>
+            <div style={{ fontSize: '14px', fontWeight: '800', color: '#fff', lineHeight: '1.4' }}>{r.title}</div>
+            <div className="flex-v6" style={{ gap: '10px', marginTop: '4px', opacity: 0.6 }}>
+              <ArrowRight size={12} /> <span style={{ fontSize: '11px', fontWeight: '700' }}>{r.upvotes} UPVOTES</span>
+            </div>
+          </div>
+        ))}
+        {(topReports || []).length === 0 && <p style={{ fontSize: '12px', color: 'var(--text-dim)', textAlign: 'center', padding: '20px' }}>Awaiting intel logs...</p>}
+      </div>
+    </section>
+
+    <section className="side-sec-v7" style={{ marginTop: '48px' }}>
+      <h4 style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13px', color: '#fff', marginBottom: '24px' }}>
+        <Activity size={16} color="var(--accent-purple)" /> PLATFORM_METRICS
+      </h4>
+      <div className="v-stack" style={{ gap: '12px' }}>
+        {[
+          { label: 'Active Channels', value: '01', color: 'var(--primary)' },
+          { label: 'Total Intel Logs', value: (reports || []).length, color: 'var(--accent-purple)' },
+          { label: 'Platform Status', value: 'Secure', color: 'var(--accent-emerald)' }
+        ].map((m, i) => (
+          <div key={i} className="flex-v6" style={{ width: '100%', justifyContent: 'space-between', padding: '16px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)', borderRadius: '12px' }}>
+             <span style={{ fontSize: '12px', fontWeight: '800', opacity: 0.5 }}>{m.label.toUpperCase()}</span>
+             <span style={{ fontSize: '14px', fontWeight: '900', color: m.color }}>{m.value}</span>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <section className="side-sec-v7" style={{ marginTop: '48px' }}>
+       <div className="flex-v6" style={{ flexWrap: 'wrap', justifyContent: 'flex-start', gap: '8px', opacity: 0.8 }}>
+          {CATEGORIES.map(c => (
+            <span key={c} className={`badge-v7 border-${c}`} style={{ fontSize: '10px', padding: '6px 14px', borderRadius: '6px' }}>{c.toUpperCase()}</span>
+          ))}
+       </div>
+    </section>
+  </aside>
+));
+
 const AdminProfileView = memo(({ reports, onStatusChange }) => {
   const [filterStatus, setFilterStatus] = useState('All');
   const [filterCategory, setFilterCategory] = useState('All');
@@ -315,11 +370,12 @@ const AuthPage = memo(({ initialMode = 'login', onAuthSuccess, onBack }) => {
   );
 });
 
-const Dashboard = memo(({ reports, role, onLogout, onVote, onAddReport, onAddComment, onStatusChange, userVotes }) => {
+const Dashboard = memo(({ reports, role, onLogout, onVote, onAddReport, onAddComment, onStatusChange, userVotes, winWidth }) => {
   const [activeTab, setActiveTab] = useState('feed');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [subState, setSubState] = useState('idle'); // idle, loading, success
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
+  const isMobile = winWidth <= 1024;
 
   const topReports = useMemo(() => {
     return [...reports].sort((a,b) => b.upvotes - a.upvotes).slice(0, 3);
@@ -402,7 +458,7 @@ const Dashboard = memo(({ reports, role, onLogout, onVote, onAddReport, onAddCom
              </div>
           </header>
 
-          {activeTab === 'feed' && reports.length === 0 && (
+          {activeTab === 'feed' && (reports || []).length === 0 && (
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="empty-hub-v18">
                <div className="empty-icon-v18"><AlertTriangle size={80} strokeWidth={1} /></div>
                <h2 className="h-title" style={{ fontSize: '28px', marginBottom: '16px' }}>Zero Intelligence Logs Indexed</h2>
@@ -411,7 +467,7 @@ const Dashboard = memo(({ reports, role, onLogout, onVote, onAddReport, onAddCom
             </motion.div>
           )}
 
-          {activeTab === 'feed' && reports.map((r, i) => (
+          {activeTab === 'feed' && (reports || []).map((r, i) => (
              <ReportCard 
                key={r.id} 
                report={r} 
@@ -538,46 +594,16 @@ const Dashboard = memo(({ reports, role, onLogout, onVote, onAddReport, onAddCom
                </div>
             </div>
           )}
+          {isMobile && <SidePanel reports={reports} topReports={topReports} />}
         </div>
       </main>
 
-      {/* 📊 RIGHT SIDEBAR (V18 PREVIEW OVERHAUL) */}
-      <aside className="side-info-v7" style={{ width: '400px' }}>
-         <section className="side-sec-v7">
-            <h4 style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13px', color: '#fff', marginBottom: '24px' }}>
-              <TrendingUp size={16} color="var(--primary)" /> HIGH_DENSITY_INTEL
-            </h4>
-            <div className="v-stack" style={{ gap: '16px' }}>
-               {topReports.map(r => (
-                  <div key={r.id} className="side-preview-v18 flex-v6" style={{ alignItems: 'flex-start', gap: '16px' }}>
-                     <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'rgba(59, 130, 246, 0.1)', display: 'flex', flexShrink: 0, alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: '900', color: 'var(--primary)' }}>{r.upvotes}</div>
-                     <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: '14px', fontWeight: '800', color: '#fff', marginBottom: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.title}</div>
-                        <p style={{ fontSize: '11px', color: 'var(--text-dim)', lineHeight: '1.4', display: '-webkit-box', WebkitLineClamp: '2', WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{r.content}</p>
-                     </div>
-                  </div>
-               ))}
-            </div>
-         </section>
-
-         <section className="side-sec-v7">
-            <h4 style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13px', color: '#fff', marginBottom: '24px' }}>
-              <Activity size={16} color="var(--primary)" /> PLATFORM_METRICS
-            </h4>
-            <div className="stat-card-v3" style={{ padding: '32px', border: '1px solid var(--glass-border)', background: 'rgba(255,255,255,0.01)', borderRadius: '20px', textAlign: 'center' }}>
-               <div className="sc-val" style={{ fontSize: '48px', fontWeight: '900', color: '#fff' }}>{reports.length}</div>
-               <div className="sc-lab" style={{ fontSize: '10px', color: 'var(--primary)', letterSpacing: '2px', fontWeight: '900' }}>TOTAL_SYSTEM_LOGS</div>
-            </div>
-         </section>
-
-         <section className="side-sec-v7">
-            <div className="flex-v6" style={{ flexWrap: 'wrap', justifyContent: 'flex-start', gap: '8px', opacity: 0.8 }}>
-               {CATEGORIES.map(c => (
-                 <span key={c} className={`badge-v7 border-${c}`} style={{ fontSize: '10px', padding: '6px 14px', borderRadius: '6px' }}>{c.toUpperCase()}</span>
-               ))}
-            </div>
-         </section>
-      </aside>
+      {/* 📊 RIGHT SIDEBAR (DESKTOP ONLY) */}
+      {!isMobile && (
+        <aside className="side-info-v7" style={{ width: '400px' }}>
+          <SidePanel reports={reports} topReports={topReports} />
+        </aside>
+      )}
 
       <div className="fab-v7" onClick={() => setIsFormOpen(true)}><Plus size={28} /></div>
 
@@ -937,6 +963,7 @@ const App = () => {
               onAddComment={handleAddComment}
               onStatusChange={handleStatusChange}
               userVotes={userVotes}
+              winWidth={winWidth}
             />
           )}
         </>
