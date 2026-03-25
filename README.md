@@ -1,64 +1,125 @@
-# GABBAR: Cinematic Command Center for Anonymous Intelligence
+# 🦇 GABBAR — Anonymous Intelligence Command Center
 
 [![Platform: React](https://img.shields.io/badge/Platform-React-blue.svg)](https://reactjs.org/)
 [![Vite: Optimized](https://img.shields.io/badge/Vite-Optimized-646CFF.svg)](https://vitejs.dev/)
 [![Design: Tech--Noir](https://img.shields.io/badge/Design-Tech--Noir-0F172A.svg)](#)
 
-GABBAR is a high-fidelity, world-class anonymous reporting platform designed as a **Cinematic Command Center**. It bridges the gap between students and administration through a "Zero-Knowledge" infrastructure, ensuring absolute anonymity while delivering high-priority intelligence across campus vectors.
+GABBAR is a high-fidelity anonymous reporting platform designed as a **cinematic command center** for campus intelligence.
+
+It enables students to report issues without fear while giving administrators a structured system to monitor, prioritize, and act on critical information.
 
 ---
 
-## 🏗️ Architectural Core
+## 🧠 Core Concept
 
-The platform is engineered with a **Data-Dense UI System**, focusing on zero visual "waste space" through an architectural approach to interface design:
+> **Absolute anonymity for users. Maximum clarity for decision-makers.**
 
-- **Immersive Hero Monitoring**: A high-luminosity "Cyber Globe" centerpiece with real-time telemetry brackets and drifting hex-data fragments.
-- **Structural Framing**: Integrated side-beams and section grids that anchor technical content and eliminate vertical/horizontal dead space.
-- **Bento Infrastructure**: A multi-layered grid system featuring "HexMatrix" scrolling decryption streams and technical readouts.
-- **Dual-State Theme System**:
-    - 🌙 **Stealth Ops (Dark)**: A tech-noir environment for low-light surveillance and deep-space reporting.
-    - ☀️ **Signal Analysis (Light)**: A high-contrast, clinical architectural noir mode for high-visibility satellite intelligence.
+GABBAR bridges the gap between **silent problems** and **visible action**.
+
+---
+
+## 🏗️ System Architecture
+
+### ⚡ Data-Dense Interface
+- Zero wasted space  
+- Structured dashboard layout  
+- High signal-to-noise UI  
+
+### 🌌 Cinematic Monitoring Experience
+- Immersive dark UI (tech-noir inspired)  
+- Real-time styled feed with priority indicators  
+- Glassmorphism + layered depth  
+
+### 🧩 Modular Layout
+- Left: Navigation & control  
+- Center: Intelligence feed  
+- Right: Trends & highlights  
+
+---
 
 ## 🔒 Security & Privacy
 
-GABBAR prioritizes "Identity Decoupling" at its core:
+GABBAR is designed with **anonymity-first architecture**:
 
-- **Zero-Knowledge Reports**: Metadata is purged of real-world identifiers at the point of submission.
-- **Encrypted Hubs**: Reports are stored in isolated vaults with transient session tokens.
-- **Anonymity Shield**: Transparent logging systems that show system activity WITHOUT revealing user identities.
+- **Identity Decoupling**  
+  User identity is never exposed with reports  
 
-## 🚀 Technical Stack
+- **Anonymous User System**  
+  Custom anonymous usernames (e.g., ShadowFox)  
 
-- **Frontend**: React (Hooks, Context)
-- **Styling**: Native CSS3 with high-impact Variables & Keyframe Animations
-- **Motion**: [Framer Motion](https://www.framer.com/motion/) for cinematic kinetic typography and background data streams.
-- **Build**: Vite for lightning-fast HMR and optimized production bundles.
+- **Zero Metadata Exposure**  
+  No visible email, ID, or personal identifiers  
 
-## 🛠️ Installation & Setup
-
-```bash
-# Clone the intelligence hub
-git clone https://github.com/Jxvz01/Gabbar.git
-
-# Enter the command center
-cd Gabbar
-
-# Deploy dependencies
-npm install
-
-# Initialize local server
-npm run dev
-```
-
-## 📜 Roadmap
-
-- [x] Cinematic Landing Page Overhaul
-- [x] Multi-Role Authentication Grid (Student, Faculty, Admin)
-- [x] Live Intelligence Feed & Topographic Maps
-- [x] Dual-Theme (Stealth/Signal) Implementation
-- [ ] Backend Decentralized Vault Integration (Coming Soon)
-- [ ] Real-time Socket.io Intel Sync (Active Research)
+- **Role-Based Access Control**  
+  - Students → report & interact  
+  - Admins → review & act  
 
 ---
+
+## ⚙️ Features
+
+### 📡 Intelligence Feed
+- Anonymous reports  
+- Upvote / amplify system  
+- Category-based tagging  
+- Status tracking (Pending / Review / Resolved)  
+
+---
+
+### 💬 Discussion Layer
+- Anonymous comments  
+- Identity-safe interactions  
+- Threaded engagement  
+
+---
+
+### 🧑‍💻 Profile System
+- Anonymous identity management  
+- Activity tracking (reports, comments)  
+- Impact visibility  
+
+---
+
+### 🛠️ Admin Dashboard
+- Report management system  
+- Status updates & actions  
+- Filtering by priority/category  
+- Structured decision interface  
+
+---
+
+## 🎨 Design System
+
+- Dark “Tech-Noir” theme  
+- Glassmorphism UI  
+- Neon accent highlights (blue/purple)  
+- Strong typography hierarchy (Inter)  
+- Smooth micro-interactions  
+
+---
+
+## 🚀 Tech Stack
+
+- **Frontend:** React (Hooks + Context)  
+- **Build Tool:** Vite  
+- **Styling:** CSS3 (custom variables + animations)  
+- **Motion:** Framer Motion  
+
+---
+
+## 🛠️ Setup
+
+```bash
+# Clone the repo
+git clone https://github.com/Jxvz01/Gabbar.git
+
+# Navigate into project
+cd Gabbar
+
+# Install dependencies
+npm install
+
+# Run locally
+npm run dev
 
 © 2024 **GABBAR** | Anonymous Intelligence Hub
