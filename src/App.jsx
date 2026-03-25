@@ -168,10 +168,12 @@ const AdminProfileView = memo(({ reports, onStatusChange }) => {
   const [filterStatus, setFilterStatus] = useState('All');
   const [filterCategory, setFilterCategory] = useState('All');
 
-  const filtered = reports.filter(r => 
-    (filterStatus === 'All' || r.status === filterStatus) &&
-    (filterCategory === 'All' || r.category === filterCategory)
-  );
+  const filtered = useMemo(() => {
+    return reports.filter(r => 
+      (filterStatus === 'All' || r.status === filterStatus) &&
+      (filterCategory === 'All' || r.category === filterCategory)
+    );
+  }, [reports, filterStatus, filterCategory]);
 
   return (
     <div className="anim-fade-up v-stack admin-view-v15" style={{ gap: '48px' }}>
@@ -318,7 +320,9 @@ const Dashboard = memo(({ reports, role, onLogout, onVote, onAddReport, onAddCom
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [subState, setSubState] = useState('idle'); // idle, loading, success
 
-  const topReports = [...reports].sort((a,b) => b.upvotes - a.upvotes).slice(0, 3);
+  const topReports = useMemo(() => {
+    return [...reports].sort((a,b) => b.upvotes - a.upvotes).slice(0, 3);
+  }, [reports]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
