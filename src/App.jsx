@@ -731,7 +731,7 @@ const ReportCard = memo(({ report, onVote, role, activeVote, onAddComment, index
           )}
         </AnimatePresence>
       </div>
-    </div>
+    </motion.div>
   );
 });
 
