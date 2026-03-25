@@ -801,16 +801,28 @@ const App = () => {
   const [isBooting, setIsBooting] = useState(false);
   const [userRole, setUserRole] = useState('Student');
   const [reports, setReports] = useState(() => {
-    const saved = localStorage.getItem('gabbar_final_v15');
-    return saved ? JSON.parse(saved) : [
-      { id: '1', title: 'Suspicious drone at Night', content: 'Observed near Wing C. Security notified.', category: 'Safety', upvotes: 121, status: 'Under Review', timestamp: Date.now() - 3600000, comments: [{ id: 'c1', user: 'SilentGhost', text: 'Spotted this near the sports complex too.', time: Date.now() - 1200000 }] },
-      { id: '2', title: 'Library AC Failure', content: 'Zone 4 is non-functional.', category: 'Facilities', upvotes: 45, status: 'Pending', timestamp: Date.now() - 7200000, comments: [] }
-    ];
+    try {
+      const saved = localStorage.getItem('gabbar_final_v15');
+      return saved ? JSON.parse(saved) : [
+        { id: '1', title: 'Suspicious drone at Night', content: 'Observed near Wing C. Security notified.', category: 'Safety', upvotes: 121, status: 'Under Review', timestamp: Date.now() - 3600000, comments: [{ id: 'c1', user: 'SilentGhost', text: 'Spotted this near the sports complex too.', time: Date.now() - 1200000 }] },
+        { id: '2', title: 'Library AC Failure', content: 'Zone 4 is non-functional.', category: 'Facilities', upvotes: 45, status: 'Pending', timestamp: Date.now() - 7200000, comments: [] }
+      ];
+    } catch (e) {
+      console.error("HYDRATION_ERROR: Corrupted intel recovered. Resetting...");
+      return [];
+    }
   });
 
   const [nextView, setNextView] = useState(null);
   const [nextMode, setNextMode] = useState('login');
   const [userVotes, setUserVotes] = useState({});
+  const [winWidth, setWinWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 0);
+
+  useEffect(() => {
+    const handleResize = () => setWinWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => { localStorage.setItem('gabbar_final_v15', JSON.stringify(reports)); }, [reports]);
 
