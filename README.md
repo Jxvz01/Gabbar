@@ -122,4 +122,4 @@ npm install
 # Run locally
 npm run dev
 
-© 2024 **GABBAR** | Anonymous Intelligence Hub
+© 2026 **GABBAR** | ANONYMOUS INTELLIGENCE HUB | Developed by Jxvz01
