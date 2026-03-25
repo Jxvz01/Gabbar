@@ -218,7 +218,7 @@ body, html {
 }
 .btn-retreat-v3:hover { color: #fff; transform: translateX(-5px); }
 
-.auth-toggle-v4 { margin-top: 32px; text-align: center; border-top: 1px solid var(--glass-border); paddingTop: 32px; }
+.auth-toggle-v4 { margin-top: 32px; text-align: center; border-top: 1px solid var(--glass-border); padding-top: 32px; }
 .auth-toggle-v4 p { font-size: 13px; color: var(--text-dim); }
 .auth-toggle-v4 span { color: var(--primary); font-weight: 800; cursor: pointer; margin-left: 6px; }
 .auth-toggle-v4 span:hover { text-decoration: underline; }
