@@ -2,9 +2,10 @@ import React, { useState, useEffect, useCallback, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   TrendingUp, Clock, BarChart2, Bell, User, Plus, LogOut, 
-  Radio, Shield, Activity, FileText, CheckCircle, ChevronUp, ChevronDown, Lock, Loader2, Edit3, ArrowRight, Zap, MessageCircle, Send 
+  Radio, Shield, Activity, FileText, CheckCircle, ChevronUp, ChevronDown, Lock, Loader2, Edit3, ArrowRight, Zap, MessageCircle, Send, AlertTriangle 
 } from 'lucide-react';
 import './index.css';
+import { sanitize, checkRateLimit, canPerformAction, anonymizeReport } from './security';
 
 // --- CONSTANTS ---
 const CATEGORIES = ['Facilities', 'Harassment', 'Academics', 'Safety', 'Suggestions', 'Other'];
@@ -597,11 +598,21 @@ const Dashboard = memo(({ reports, role, onLogout, onVote, onAddReport, onAddCom
 const ReportCard = memo(({ report, onVote, role, activeVote, onAddComment }) => {
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
 
   const submitComment = (e) => {
     e.preventDefault();
-    if (!commentText.trim()) return;
-    onAddComment(report.id, commentText, 'ANON_OPERATIVE');
+    const cleanText = sanitize(commentText);
+    if (!cleanText.trim()) return;
+    
+    const limit = checkRateLimit(`USER_${role}`, 'comment');
+    if (!limit.ok) {
+      setErrorMsg(`Wait ${limit.remaining}s before new comment.`);
+      setTimeout(() => setErrorMsg(''), 3000);
+      return;
+    }
+
+    onAddComment(report.id, cleanText, 'ANON_OPERATIVE');
     setCommentText('');
   };
 
@@ -680,6 +691,12 @@ const ReportCard = memo(({ report, onVote, role, activeVote, onAddComment }) => 
                 />
                 <button type="submit" className="comment-btn-v11"><Send size={14} /></button>
               </form>
+              
+              {errorMsg && (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-v6" style={{ color: '#ef4444', fontSize: '10px', fontWeight: '800', marginTop: '12px', gap: '8px', justifyContent: 'flex-start' }}>
+                   <AlertTriangle size={12} /> {errorMsg.toUpperCase()}
+                </motion.div>
+              )}
             </motion.div>
           )}
         </AnimatePresence>
@@ -747,8 +764,12 @@ const App = () => {
   }, [nextView]);
 
   const handleStatusChange = useCallback((id, newStatus) => {
+    if (!canPerformAction(userRole, 'manage_status')) {
+      alert("UNAUTHORIZED: Elevating credentials required for status management.");
+      return;
+    }
     setReports(prev => prev.map(r => r.id === id ? { ...r, status: newStatus } : r));
-  }, []);
+  }, [userRole]);
 
   const handleAuth = useCallback((role) => {
     setUserRole(role);
@@ -756,6 +777,9 @@ const App = () => {
   }, []);
 
   const handleVote = useCallback((reportId, type) => {
+    const limit = checkRateLimit(`USER_${userRole}`, 'vote');
+    if (!limit.ok) return; // Silent discard for rapid votes
+
     setUserVotes(prev => {
       const current = prev[reportId] || 0;
       let next = current;
@@ -780,29 +804,42 @@ const App = () => {
       }
       return r;
     }));
-  }, [userVotes]);
+  }, [userVotes, userRole]);
 
   const addReport = useCallback((e) => {
     e.preventDefault();
-    const newReport = {
+    
+    if (!canPerformAction(userRole, 'submit_report')) {
+      alert("UNAUTHORIZED: Your operative role lacks submission credentials.");
+      return;
+    }
+
+    const limit = checkRateLimit(`USER_${userRole}`, 'report');
+    if (!limit.ok) {
+      alert(`SYSTEM_HALT: Rate limiting active. Wait ${limit.remaining}s.`);
+      return;
+    }
+
+    const newReportRaw = {
       id: Date.now().toString(),
-      title: e.target.title.value,
+      title: sanitize(e.target.title.value),
       category: e.target.category.value,
-      content: e.target.content.value,
+      content: sanitize(e.target.content.value),
       upvotes: 0,
       status: 'Pending',
       timestamp: Date.now(),
       comments: []
     };
-    setReports(prev => [newReport, ...prev]);
-  }, []);
+
+    setReports(prev => [anonymizeReport(newReportRaw), ...prev]);
+  }, [userRole]);
 
   const handleAddComment = useCallback((reportId, text, user) => {
     setReports(prev => prev.map(r => {
       if (r.id === reportId) {
         return {
           ...r,
-          comments: [...(r.comments || []), { id: Date.now().toString(), user, text, time: Date.now() }]
+          comments: [...(r.comments || []), { id: Date.now().toString(), user, text: sanitize(text), time: Date.now() }]
         };
       }
       return r;
