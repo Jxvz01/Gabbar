@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   TrendingUp, Clock, BarChart2, Bell, User, Plus, LogOut, 
-  Radio, Shield, Activity, FileText, CheckCircle, ChevronUp, ChevronDown, Lock, Loader2, Edit3, ArrowRight, Zap, MessageCircle, Send, AlertTriangle 
+  Radio, Shield, Activity, FileText, CheckCircle, ChevronUp, ChevronDown, Lock, Loader2, Edit3, ArrowRight, Zap, MessageCircle, Send, AlertTriangle, Menu, X 
 } from 'lucide-react';
 import './index.css';
 import { sanitize, checkRateLimit, canPerformAction, anonymizeReport } from './security';
@@ -319,6 +319,7 @@ const Dashboard = memo(({ reports, role, onLogout, onVote, onAddReport, onAddCom
   const [activeTab, setActiveTab] = useState('feed');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [subState, setSubState] = useState('idle'); // idle, loading, success
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
 
   const topReports = useMemo(() => {
     return [...reports].sort((a,b) => b.upvotes - a.upvotes).slice(0, 3);
@@ -339,9 +340,32 @@ const Dashboard = memo(({ reports, role, onLogout, onVote, onAddReport, onAddCom
   
   return (
     <div className="dash-layout-v7">
+      {/* 📱 MOBILE HEADER (V20) */}
+      <div className="mobile-header-v20">
+         <div className="nav-logo" style={{ marginBottom: 0, display: 'block', fontSize: '18px' }}>GABBAR.</div>
+         <button className="vote-btn-v8" style={{ width: '44px', height: '44px' }} onClick={() => setIsMobileNavOpen(true)}>
+            <Menu size={24} />
+         </button>
+      </div>
+
+      <AnimatePresence>
+        {isMobileNavOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="mobile-overlay-v20" 
+            onClick={() => setIsMobileNavOpen(false)} 
+          />
+        )}
+      </AnimatePresence>
+
       {/* 🧭 LEFT SIDEBAR */}
-      <aside className="side-nav-v7">
-        <div className="nav-logo">GABBAR.</div>
+      <aside className={`side-nav-v7 ${isMobileNavOpen ? 'open' : ''}`}>
+        <div className="flex-v6" style={{ width: '100%', justifyContent: 'space-between', marginBottom: '40px' }}>
+           <div className="nav-logo" style={{ marginBottom: 0 }}>GABBAR.</div>
+           <button className="vote-btn-v8 mobile-only" style={{ width: '32px', height: '32px', display: 'none' }} onClick={() => setIsMobileNavOpen(false)}>
+              <X size={18} />
+           </button>
+        </div>
         <nav className="nav-list">
           {[
             { id: 'feed', label: 'Feed', icon: <Radio size={18} /> },
@@ -351,9 +375,11 @@ const Dashboard = memo(({ reports, role, onLogout, onVote, onAddReport, onAddCom
             <div 
               key={item.id} 
               className={`nav-item-v7 ${activeTab === item.id ? 'active' : ''}`}
-              onClick={() => setActiveTab(item.id)}
+              onClick={() => { setActiveTab(item.id); setIsMobileNavOpen(false); }}
             >
-              {item.icon} {item.label}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                {item.icon} <span>{item.label}</span>
+              </div>
             </div>
           ))}
         </nav>
