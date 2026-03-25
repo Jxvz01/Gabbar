@@ -372,20 +372,26 @@ const Dashboard = memo(({ reports, role, onLogout, onVote, onAddReport, onAddCom
              </div>
           </header>
 
-          {activeTab === 'feed' && (
-            <div className="anim-fade-up">
-              {reports.map(r => (
-                <ReportCard 
-                  key={r.id} 
-                  report={r} 
-                  onVote={onVote} 
-                  role={role} 
-                  activeVote={userVotes[r.id] || 0}
-                  onAddComment={onAddComment}
-                />
-              ))}
-            </div>
+          {activeTab === 'feed' && reports.length === 0 && (
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="empty-hub-v18">
+               <div className="empty-icon-v18"><AlertTriangle size={80} strokeWidth={1} /></div>
+               <h2 className="h-title" style={{ fontSize: '28px', marginBottom: '16px' }}>Zero Intelligence Logs Indexed</h2>
+               <p className="h-sub" style={{ fontSize: '15px', maxWidth: '400px', marginBottom: '40px' }}>The hub is currently clear. Be the first operative to raise an industrial concern or suggestion.</p>
+               <button className="btn-v3 primary" onClick={() => setIsFormOpen(true)} style={{ padding: '18px 40px' }}><Plus size={20} /> Initialize First Report</button>
+            </motion.div>
           )}
+
+          {activeTab === 'feed' && reports.map((r, i) => (
+             <ReportCard 
+               key={r.id} 
+               report={r} 
+               onVote={onVote} 
+               role={role} 
+               activeVote={userVotes[r.id] || 0}
+               onAddComment={onAddComment}
+               index={i}
+             />
+          ))}
 
           {activeTab === 'notifications' && (
             <div className="anim-fade-up v-stack" style={{ alignItems: 'flex-start' }}>
@@ -505,36 +511,39 @@ const Dashboard = memo(({ reports, role, onLogout, onVote, onAddReport, onAddCom
         </div>
       </main>
 
-      {/* 📊 RIGHT SIDEBAR */}
-      <aside className="side-info-v7">
+      {/* 📊 RIGHT SIDEBAR (V18 PREVIEW OVERHAUL) */}
+      <aside className="side-info-v7" style={{ width: '400px' }}>
          <section className="side-sec-v7">
-            <h4 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><TrendingUp size={14} /> Top Intelligence</h4>
-            <div className="v-stack" style={{ gap: '12px' }}>
-              {topReports.map(r => (
-                 <div key={r.id} className="mini-card-v7">
-                    <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(59, 130, 246, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: '800', color: 'var(--primary)' }}>{r.upvotes}</div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: '13px', fontWeight: '600', color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '180px' }}>{r.title}</div>
-                      <div style={{ fontSize: '11px', color: 'var(--text-dim)' }}>{r.category}</div>
-                    </div>
-                 </div>
-              ))}
+            <h4 style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13px', color: '#fff', marginBottom: '24px' }}>
+              <TrendingUp size={16} color="var(--primary)" /> HIGH_DENSITY_INTEL
+            </h4>
+            <div className="v-stack" style={{ gap: '16px' }}>
+               {topReports.map(r => (
+                  <div key={r.id} className="side-preview-v18 flex-v6" style={{ alignItems: 'flex-start', gap: '16px' }}>
+                     <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'rgba(59, 130, 246, 0.1)', display: 'flex', flexShrink: 0, alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: '900', color: 'var(--primary)' }}>{r.upvotes}</div>
+                     <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: '14px', fontWeight: '800', color: '#fff', marginBottom: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.title}</div>
+                        <p style={{ fontSize: '11px', color: 'var(--text-dim)', lineHeight: '1.4', display: '-webkit-box', WebkitLineClamp: '2', WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{r.content}</p>
+                     </div>
+                  </div>
+               ))}
             </div>
          </section>
 
          <section className="side-sec-v7">
-            <h4 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Activity size={14} /> Platform Density</h4>
-            <div className="stat-card-v3" style={{ padding: '24px', border: 'none', background: 'var(--bg-card)', borderRadius: '16px' }}>
-               <span className="sc-val" style={{ fontSize: '32px', fontWeight: '800' }}>{reports.length}</span>
-               <span className="sc-lab">TOTAL INDEXED REPORTS</span>
+            <h4 style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13px', color: '#fff', marginBottom: '24px' }}>
+              <Activity size={16} color="var(--primary)" /> PLATFORM_METRICS
+            </h4>
+            <div className="stat-card-v3" style={{ padding: '32px', border: '1px solid var(--glass-border)', background: 'rgba(255,255,255,0.01)', borderRadius: '20px', textAlign: 'center' }}>
+               <div className="sc-val" style={{ fontSize: '48px', fontWeight: '900', color: '#fff' }}>{reports.length}</div>
+               <div className="sc-lab" style={{ fontSize: '10px', color: 'var(--primary)', letterSpacing: '2px', fontWeight: '900' }}>TOTAL_SYSTEM_LOGS</div>
             </div>
          </section>
 
          <section className="side-sec-v7">
-            <h4 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><FileText size={14} /> Intelligence Sectors</h4>
-            <div className="flex-v6" style={{ flexWrap: 'wrap', justifyContent: 'flex-start', gap: '8px' }}>
+            <div className="flex-v6" style={{ flexWrap: 'wrap', justifyContent: 'flex-start', gap: '8px', opacity: 0.8 }}>
                {CATEGORIES.map(c => (
-                 <span key={c} className="badge-v7 category" style={{ cursor: 'pointer', opacity: 0.8 }}>{c}</span>
+                 <span key={c} className={`badge-v7 border-${c}`} style={{ fontSize: '10px', padding: '6px 14px', borderRadius: '6px' }}>{c.toUpperCase()}</span>
                ))}
             </div>
          </section>
@@ -595,10 +604,13 @@ const Dashboard = memo(({ reports, role, onLogout, onVote, onAddReport, onAddCom
   );
 });
 
-const ReportCard = memo(({ report, onVote, role, activeVote, onAddComment }) => {
+const ReportCard = memo(({ report, onVote, role, activeVote, onAddComment, index }) => {
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+
+  const isTrending = report.upvotes > 70;
+  const isPriority = report.category === 'Safety' || report.category === 'Harassment';
 
   const submitComment = (e) => {
     e.preventDefault();
@@ -617,51 +629,64 @@ const ReportCard = memo(({ report, onVote, role, activeVote, onAddComment }) => 
   };
 
   return (
-    <div className="feed-card-v7 anim-fade-up">
-      <aside className="vote-col-v8">
-         <motion.button 
-           whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
-           className={`vote-btn-v8 up ${activeVote === 1 ? 'active' : ''}`}
-           onClick={() => onVote(report.id, 1)}
-         >
-           <ChevronUp size={20} />
-         </motion.button>
-         <span className="vote-count-v8">{report.upvotes}</span>
-         <motion.button 
-           whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
-           className={`vote-btn-v8 down ${activeVote === -1 ? 'active' : ''}`}
-           onClick={() => onVote(report.id, -1)}
-         >
-           <ChevronDown size={20} />
-         </motion.button>
-      </aside>
-
-      <div className="rc-content-v8">
-        <div className="rc-head" style={{ marginBottom: '16px' }}>
-           <div className="flex-v6" style={{ gap: '8px', justifyContent: 'flex-start' }}>
-              <span className="badge-v7 category">{report.category}</span>
-              <span className="badge-v7 status">{report.status}</span>
+    <motion.div 
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay: (index % 3) * 0.1 }}
+      viewport={{ once: true, margin: '-50px' }}
+      whileHover={{ y: -8, transition: { duration: 0.2 } }}
+      className={`card-v18 border-${report.category} ${index % 2 === 0 ? '' : 'card-alt-v18'}`}
+      style={{ marginBottom: '32px' }}
+    >
+      <div className="v-stack" style={{ gap: '20px', alignItems: 'stretch' }}>
+        <div className="flex-v6" style={{ justifyContent: 'space-between', alignItems: 'flex-start' }}>
+           <div className="v-stack" style={{ gap: '12px', alignItems: 'flex-start' }}>
+              <div className="flex-v6" style={{ gap: '10px', justifyContent: 'flex-start' }}>
+                 <span className="badge-v7 category" style={{ background: 'rgba(255,255,255,0.05)', fontSize: '10px' }}>{report.category.toUpperCase()}</span>
+                 {isPriority && <span className="trigger-v18 trigger-priority"><AlertTriangle size={12} /> Priority</span>}
+                 {isTrending && <span className="trigger-v18 trigger-trending"><TrendingUp size={12} /> Trending</span>}
+              </div>
+              <h3 className="h-title" style={{ fontSize: '24px', fontWeight: '900', letterSpacing: '-0.01em', color: '#fff' }}>{report.title}</h3>
            </div>
-           <span style={{ fontSize: '12px', color: 'var(--text-dim)' }}>
-              {new Date(report.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}
-           </span>
+           
+           <div className="vote-group-v8">
+              <button 
+                className={`vote-btn-v8 ${activeVote === 1 ? 'up active' : ''}`}
+                onClick={() => onVote(report.id, 1)}
+              >
+                <ChevronUp size={22} strokeWidth={3} />
+              </button>
+              <span className="vote-count-v8">{report.upvotes}</span>
+              <button 
+                className={`vote-btn-v8 ${activeVote === -1 ? 'down active' : ''}`}
+                onClick={() => onVote(report.id, -1)}
+              >
+                <ChevronDown size={22} strokeWidth={3} />
+              </button>
+           </div>
         </div>
-        <h3 style={{ fontSize: '18px', fontWeight: '700', marginBottom: '12px', color: '#fff' }}>{report.title}</h3>
-        <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: '1.6', marginBottom: '24px' }}>{report.content}</p>
+
+        <p style={{ color: 'var(--text-secondary)', fontSize: '16px', lineHeight: '1.7', opacity: 0.9 }}>
+          {report.content}
+        </p>
         
-        <div className="rc-foot">
-           <div className="rc-actions" style={{ gap: '16px' }}>
+        <div className="footer-v6 flex-v6" style={{ borderTop: '1px solid var(--glass-border)', paddingTop: '24px', justifyContent: 'space-between' }}>
+           <div className="flex-v6" style={{ gap: '20px' }}>
               <button 
                 className="flex-v6" 
-                style={{ fontSize: '12px', color: 'var(--text-dim)', gap: '6px', cursor: 'pointer', background: 'none', border: 'none' }}
+                style={{ fontSize: '12px', color: 'var(--text-dim)', gap: '8px', cursor: 'pointer', background: 'none', border: 'none', fontWeight: '700' }}
                 onClick={() => setShowComments(!showComments)}
               >
-                <MessageCircle size={14} /> {report.comments?.length || 0} Comments
+                <MessageCircle size={16} /> {report.comments?.length || 0} Comments
               </button>
-              { (role === 'Admin' || role === 'Professor') && (
-                <button className="btn-v6 secondary" style={{ padding: '6px 16px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}><CheckCircle size={12} /> Verify</button>
-              )}
+              <div style={{ fontSize: '11px', color: 'var(--text-secondary)', opacity: 0.5 }}>
+                 {new Date(report.timestamp).toLocaleDateString()}
+              </div>
            </div>
+           
+           { (role === 'Admin' || role === 'Professor') && (
+             <button className="btn-v6 secondary" style={{ padding: '8px 20px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '800' }}><CheckCircle size={14} /> VERIFY</button>
+           )}
         </div>
 
         <AnimatePresence>
@@ -671,14 +696,15 @@ const ReportCard = memo(({ report, onVote, role, activeVote, onAddComment }) => 
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
               className="comment-thread-v11 overflow-hidden"
+              style={{ marginTop: '24px', borderTop: '1px solid var(--glass-border)', paddingTop: '24px' }}
             >
               {(report.comments || []).map(c => (
                 <div key={c.id} className="comment-v11">
-                  <div className="c-head">
-                    <span className="c-user">{c.user}</span>
-                    <span className="c-time">· {new Date(c.time).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+                  <div className="c-head" style={{ display: 'flex', gap: '8px', marginBottom: '8px', fontSize: '11px', fontWeight: '800' }}>
+                    <span style={{ color: 'var(--primary)' }}>{c.user}</span>
+                    <span style={{ color: 'var(--text-dim)', opacity: 0.5 }}>· {new Date(c.time).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
                   </div>
-                  <p className="c-text">{c.text}</p>
+                  <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>{c.text}</p>
                 </div>
               ))}
 

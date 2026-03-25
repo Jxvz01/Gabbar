@@ -468,6 +468,55 @@ body {
 .btn-admin-v15.resolve { background: rgba(5, 150, 105, 0.2); border-color: rgba(5, 150, 105, 0.3); color: #10b981; }
 .btn-admin-v15.resolve:hover { background: rgba(5, 150, 105, 0.3); }
 
+/* 🌪️ VISUAL KINETIC V18: INTERACTIVE EMPHASIS */
+.card-v18 { 
+  background: var(--bg-card); border: 1px solid var(--glass-border);
+  padding: 32px; border-radius: 20px; transition: 0.4s cubic-bezier(0.2, 0, 0, 1);
+  position: relative; overflow: hidden;
+}
+.card-v18:hover { 
+  transform: translateY(-8px) scale(1.02);
+  border-color: var(--primary);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+}
+
+/* Category Border Highlights */
+.border-Facilities { border-left: 6px solid #3b82f6 !important; }
+.border-Harassment { border-left: 6px solid #ef4444 !important; }
+.border-Academics { border-left: 6px solid #8b5cf6 !important; }
+.border-Safety { border-left: 6px solid #f59e0b !important; }
+.border-Suggestions { border-left: 6px solid #10b981 !important; }
+.border-Other { border-left: 6px solid #6b7280 !important; }
+
+/* Background rhythm */
+.card-alt-v18 { background: rgba(255,255,255,0.015); }
+
+/* Attention Triggers */
+.trigger-v18 { 
+  display: flex; align-items: center; gap: 6px; 
+  padding: 6px 12px; border-radius: 8px; font-size: 10px; font-weight: 900; 
+  text-transform: uppercase; letter-spacing: 1px;
+}
+.trigger-priority { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); }
+.trigger-trending { background: rgba(245, 158, 11, 0.1); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.2); }
+
+/* Sidebar Premium */
+.side-preview-v18 { 
+  background: rgba(255,255,255,0.01); border: 1px solid var(--glass-border); 
+  padding: 16px; border-radius: 12px; transition: 0.3s;
+}
+.side-preview-v18:hover { 
+  background: rgba(59, 130, 246, 0.05); border-color: var(--primary);
+}
+
+/* Empty State */
+.empty-hub-v18 { 
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 120px 40px; text-align: center; background: rgba(255,255,255,0.005);
+  border: 2px dashed rgba(255,255,255,0.05); border-radius: 40px;
+}
+.empty-icon-v18 { color: var(--text-dim); margin-bottom: 24px; opacity: 0.2; }
+
 .sec-header-v10 { 
   display: flex; align-items: center; gap: 12px; margin-bottom: 32px; 
   font-size: 12px; font-weight: 800; color: var(--text-dim); 
