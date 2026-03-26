@@ -563,16 +563,16 @@ const Dashboard = memo(({ reports, role, onLogout, onVote, onAddReport, onAddCom
       {/* 📦 MAIN FEED */}
       <main className="main-feed-v7">
         <div className="feed-container-v7">
-          <header className="top-nav-v7">
-             <div>
-                <h2 className="h-title">{activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}</h2>
-                <p className="h-sub">Managing platform intelligence & secure communications.</p>
+          <header className="top-nav-v7" style={{ alignItems: 'flex-start' }}>
+             <div style={{ textAlign: 'left' }}>
+                <h2 className="h-title" style={{ fontSize: '24px' }}>{activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}</h2>
+                <p className="h-sub" style={{ textAlign: 'left' }}>Secure platform intelligence.</p>
              </div>
-             <div className="flex-v6" style={{ gap: '12px' }}>
-                <div className="badge-v7 status">ID: #4096_SYNC</div>
-                <div className="role-badge" style={{ margin: 0 }}>{role}</div>
+             <div className="flex-v6" style={{ gap: '8px', flexDirection: 'row', width: 'auto' }}>
+                <div className="badge-v7 status" style={{ fontSize: '9px' }}>#{role.toUpperCase()}</div>
              </div>
           </header>
+
 
           {activeTab === 'feed' && (reports || []).length === 0 && (
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="empty-hub-v18">
@@ -820,14 +820,14 @@ const ReportCard = memo(({ report, onVote, role, activeVote, onAddComment, onDel
     >
       <div className="v-stack" style={{ gap: '20px', alignItems: 'stretch' }}>
         <div className="flex-v6" style={{ justifyContent: 'space-between', alignItems: 'flex-start' }}>
-           <div className="v-stack" style={{ gap: '12px', alignItems: 'flex-start' }}>
-              <div className="flex-v6" style={{ gap: '10px', justifyContent: 'flex-start' }}>
+            <div className="v-stack" style={{ gap: '8px', alignItems: 'flex-start', flex: 1 }}>
+              <div className="flex-v6" style={{ gap: '8px', justifyContent: 'flex-start', flexDirection: 'row', flexWrap: 'wrap' }}>
                  <span className="badge-v7 category" style={{ background: 'rgba(255,255,255,0.05)', fontSize: '10px' }}>{report.category.toUpperCase()}</span>
                  {isPriority && <span className="trigger-v18 trigger-priority"><AlertTriangle size={12} /> Priority</span>}
                  {isTrending && <span className="trigger-v18 trigger-trending"><TrendingUp size={12} /> Trending</span>}
               </div>
-              <h3 className="h-title" style={{ fontSize: '24px', fontWeight: '900', letterSpacing: '-0.01em', color: '#fff' }}>{report.title}</h3>
-           </div>
+              <h3 className="h-title" style={{ fontSize: '20px', fontWeight: '800', letterSpacing: '-0.01em', color: '#fff', textAlign: 'left' }}>{report.title}</h3>
+            </div>
            
            <div className="vote-group-v8">
               <button 
@@ -846,9 +846,10 @@ const ReportCard = memo(({ report, onVote, role, activeVote, onAddComment, onDel
            </div>
         </div>
 
-        <p style={{ color: 'var(--text-secondary)', fontSize: '16px', lineHeight: '1.7', opacity: 0.9 }}>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '15px', lineHeight: '1.6', opacity: 0.9, textAlign: 'left' }}>
           {report.content}
         </p>
+
         
         <div className="footer-v6 flex-v6" style={{ borderTop: '1px solid var(--glass-border)', paddingTop: '24px', justifyContent: 'space-between' }}>
            <div className="flex-v6" style={{ gap: '20px' }}>
