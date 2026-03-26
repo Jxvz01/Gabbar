@@ -14,7 +14,7 @@
 body, html { 
   background: var(--bg-primary); color: var(--text-primary); font-family: var(--font-main); 
   overflow-x: hidden !important; width: 100% !important; max-width: 100vw !important;
-  position: relative;
+  margin: 0; position: relative;
 }
 @media (max-width: 640px) {
   body, html { position: relative; overflow-x: hidden; width: 100%; max-width: 100vw; }
@@ -316,8 +316,10 @@ body, html {
   position: fixed; bottom: 32px; right: 380px; width: 60px; height: 60px; 
   background: var(--primary); color: #fff; border-radius: 50%; display: flex; 
   align-items: center; justify-content: center; font-size: 24px; cursor: pointer;
-  box-shadow: 0 10px 30px var(--primary-glow); z-index: 100; transition: 0.3s;
+  box-shadow: 0 10px 30px var(--primary-glow); z-index: 1000; transition: 0.3s;
 }
+@media (max-width: 1024px) { .fab-v7 { right: 24px; bottom: 80px; } }
+@media (max-width: 640px) { .fab-v7 { width: 52px; height: 52px; right: 20px; bottom: 70px; } }
 .input-v9 { 
   width: 100%; background: rgba(255, 255, 255, 0.03); 
   border: 1px solid var(--glass-border); border-radius: 16px; 
@@ -350,6 +352,21 @@ body, html {
 .success-tag-v9 { 
   display: flex; align-items: center; gap: 8px; color: var(--accent-emerald); 
   font-weight: 700; font-size: 14px; margin-top: 16px; justify-content: center;
+}
+
+/* 🧊 MODAL V9: DEEP GLASS OVERHAUL */
+.modal-overlay-v9 {
+  position: fixed; inset: 0; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(20px);
+  z-index: 5000; display: flex; align-items: center; justify-content: center; padding: 20px;
+}
+.modal-glass-v9 {
+  background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: 32px;
+  padding: 48px; width: 100%; max-width: 600px; box-shadow: var(--shadow-float);
+  position: relative; overflow: hidden;
+}
+@media (max-width: 640px) { 
+  .modal-glass-v9 { padding: 32px 20px; border-radius: 0; height: 100%; max-height: 100%; max-width: 100%; } 
+  .modal-overlay-v9 { padding: 0; }
 }
 
 /* 👤 PROFILE V10: ANONYMITY VAULT (RESPONSIVE) */
