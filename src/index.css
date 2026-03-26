@@ -252,6 +252,18 @@ body, html {
 }
 @media (max-width: 640px) { .dash-layout-v7 { display: block; overflow-x: hidden; height: auto; min-height: 100dvh; } }
 
+/* 🛠️ DEV TERMINAL V28: ADMINISTRATIVE STYLES */
+.admin-table-v15 { width: 100%; border-collapse: collapse; background: rgba(17, 24, 39, 0.4); border-radius: 16px; overflow: hidden; border: 1px solid #1f2937; margin-bottom: 24px; }
+.admin-th-v15 { text-align: left; padding: 20px 24px; background: rgba(31, 41, 55, 0.5); color: #6b7280; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; border-bottom: 1px solid #1f2937; }
+.admin-td-v15 { padding: 20px 24px; color: #9ca3af; font-size: 13px; border-bottom: 1px solid #1f2937; transition: 0.2s; }
+.admin-row-v15:hover .admin-td-v15 { background: rgba(255,255,255,0.01); }
+.badge-v15 { padding: 6px 12px; border-radius: 6px; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; }
+.badge-admin { background: rgba(59, 130, 246, 0.1); color: var(--primary); border: 1px solid var(--primary); }
+.btn-admin-v15 { background: transparent; border: none; font-size: 10px; font-weight: 900; letter-spacing: 1.5px; text-transform: uppercase; cursor: pointer; transition: 0.2s; padding: 10px 16px; border-radius: 8px; }
+.btn-admin-v15:hover { background: rgba(239, 68, 68, 0.05); }
+.btn-v15.resolve { background: #10b9811a; color: #10b981; border: 1px solid #10b9814d; padding: 12px 24px; border-radius: 12px; font-weight: 800; font-size: 12px; cursor: pointer; }
+.btn-v15.resolve:hover { background: #10b98133; }
+
 /* 📱 NATIVE KINETIC MOBILE (V26) */
 @media (max-width: 1024px) {
   .dash-layout-v7 { display: block; min-height: 100dvh; background: var(--bg-primary); }

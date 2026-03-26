@@ -239,6 +239,81 @@ const SidePanel = memo(({ reports, topReports }) => (
   </aside>
 ));
 
+const DevPanel = memo(({ reports, users, onDelete, onStatusChange, onBack }) => (
+  <div className="dev-panel-v28 page-transition" style={{ padding: '40px', background: '#030712', minHeight: '100vh' }}>
+    <div className="flex-v6" style={{ justifyContent: 'space-between', marginBottom: '48px', borderBottom: '1px solid #1f2937', paddingBottom: '32px' }}>
+       <h1 style={{ fontSize: '32px', fontWeight: '900', color: '#fff' }}>/DEV_TERMINAL</h1>
+       <button onClick={onBack} className="btn-v15 resolve">RETURN_TO_COMMAND</button>
+    </div>
+
+    <div className="v-stack" style={{ gap: '64px', alignItems: 'stretch' }}>
+       <section>
+          <h2 style={{ fontSize: '12px', fontWeight: '800', color: 'var(--primary)', marginBottom: '32px', letterSpacing: '2px' }}>[USER_MANIFEST]</h2>
+          <div style={{ overflowX: 'auto' }}>
+            <table className="admin-table-v15">
+              <thead>
+                 <tr>
+                    <th className="admin-th-v15">OPERATIVE_EMAIL</th>
+                    <th className="admin-th-v15">IDENTITY_RANK</th>
+                    <th className="admin-th-v15">INTELLIGENCE_VOL</th>
+                 </tr>
+              </thead>
+              <tbody>
+                 {users.map((u, i) => (
+                   <tr key={i} className="admin-row-v15">
+                      <td className="admin-td-v15" style={{ color: '#fff' }}>{u.email}</td>
+                      <td className="admin-td-v15"><span className="badge-v15 badge-admin">{u.role}</span></td>
+                      <td className="admin-td-v15">{u.reports} LOGS</td>
+                   </tr>
+                 ))}
+              </tbody>
+            </table>
+          </div>
+       </section>
+
+       <section>
+          <h2 style={{ fontSize: '12px', fontWeight: '800', color: 'var(--accent-purple)', marginBottom: '32px', letterSpacing: '2px' }}>[INTEL_LEDGER]</h2>
+          <div style={{ overflowX: 'auto' }}>
+            <table className="admin-table-v15">
+              <thead>
+                 <tr>
+                    <th className="admin-th-v15">REPORT_SUBJECT</th>
+                    <th className="admin-th-v15">SECTOR</th>
+                    <th className="admin-th-v15">STATUS_PROTOCOLS</th>
+                    <th className="admin-th-v15">COMMANDS</th>
+                 </tr>
+              </thead>
+              <tbody>
+                 {reports.map((r) => (
+                   <tr key={r.id} className="admin-row-v15">
+                      <td className="admin-td-v15">
+                         <div style={{ fontWeight: '800', color: '#fff' }}>{r.title}</div>
+                         <div style={{ fontSize: '10px', color: '#6b7280', marginTop: '4px' }}>LOG_{r.id}</div>
+                      </td>
+                      <td className="admin-td-v15"><span className={`badge-v7 border-${r.category}`}>{r.category}</span></td>
+                      <td className="admin-td-v15">
+                         <select 
+                           value={r.status} 
+                           onChange={(e) => onStatusChange(r.id, e.target.value)}
+                           className="select-v4" 
+                           style={{ width: '130px', background: 'transparent' }}
+                         >
+                            {STATUSES.map(s => <option key={s} value={s}>{s.toUpperCase()}</option>)}
+                         </select>
+                      </td>
+                      <td className="admin-td-v15">
+                         <button onClick={() => onDelete(r.id)} className="btn-admin-v15" style={{ color: '#ef4444' }}>DELETE_LOG</button>
+                      </td>
+                   </tr>
+                 ))}
+              </tbody>
+            </table>
+          </div>
+       </section>
+    </div>
+  </div>
+));
+
 const AdminProfileView = memo(({ reports, onStatusChange }) => {
   const [filterStatus, setFilterStatus] = useState('All');
   const [filterCategory, setFilterCategory] = useState('All');
@@ -415,7 +490,7 @@ const AuthPage = memo(({ initialMode = 'login', onAuthSuccess, onBack }) => {
   );
 });
 
-const Dashboard = memo(({ reports, role, onLogout, onVote, onAddReport, onAddComment, onStatusChange, userVotes, winWidth }) => {
+const Dashboard = memo(({ reports, role, onLogout, onVote, onAddReport, onAddComment, onStatusChange, onDeleteReport, userVotes, winWidth }) => {
   const [activeTab, setActiveTab] = useState('feed');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [subState, setSubState] = useState('idle'); // idle, loading, success
@@ -511,6 +586,7 @@ const Dashboard = memo(({ reports, role, onLogout, onVote, onAddReport, onAddCom
                role={role} 
                activeVote={userVotes[r.id] || 0}
                onAddComment={onAddComment}
+               onDeleteReport={onDeleteReport}
                index={i}
              />
           ))}
@@ -702,13 +778,14 @@ const Dashboard = memo(({ reports, role, onLogout, onVote, onAddReport, onAddCom
   );
 });
 
-const ReportCard = memo(({ report, onVote, role, activeVote, onAddComment, index }) => {
+const ReportCard = memo(({ report, onVote, role, activeVote, onAddComment, onDeleteReport, index }) => {
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
 
   const isTrending = report.upvotes > 70;
   const isPriority = report.category === 'Safety' || report.category === 'Harassment';
+  const isOwner = report.author && report.author === 'currentUserEmailSimulation'; 
 
   const submitComment = (e) => {
     e.preventDefault();
@@ -783,7 +860,17 @@ const ReportCard = memo(({ report, onVote, role, activeVote, onAddComment, index
            </div>
            
            { (role === 'Admin' || role === 'Professor') && (
-             <button className="btn-v6 secondary" style={{ padding: '8px 20px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '800' }}><CheckCircle size={14} /> VERIFY</button>
+             <button className="btn-v6 secondary" style={{ padding: '8px 16px', fontSize: '10px', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '800' }}><CheckCircle size={14} /> VERIFY</button>
+           )}
+
+           { (role === 'Admin' || isOwner) && (
+              <button 
+                className="action-btn-v14 danger" 
+                style={{ padding: '8px 16px', color: '#ef4444' }} 
+                onClick={() => onDeleteReport(report.id)}
+              >
+                DELETE_LOG
+              </button>
            )}
         </div>
 
@@ -885,6 +972,23 @@ const App = () => {
   const [nextMode, setNextMode] = useState('login');
   const [userVotes, setUserVotes] = useState({});
   const [winWidth, setWinWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 0);
+  const [currentUserEmail, setCurrentUserEmail] = useState('');
+  const [registeredUsers, setRegisteredUsers] = useState([
+    { email: 'admin@vvce.ac.in', role: 'Admin', reports: 0 },
+    { email: 'student1@vvce.ac.in', role: 'Student', reports: 2 }
+  ]);
+
+  useEffect(() => {
+    const checkPath = () => {
+       if (window.location.pathname === '/dev') {
+          if (userRole === 'Admin') setView('dev');
+          else setView('landing');
+       }
+    };
+    checkPath();
+    window.addEventListener('popstate', checkPath);
+    return () => window.removeEventListener('popstate', checkPath);
+  }, [userRole]);
 
   useEffect(() => {
     const handleResize = () => setWinWidth(window.innerWidth);
@@ -907,8 +1011,9 @@ const App = () => {
     setReports(prev => prev.map(r => r.id === id ? { ...r, status: newStatus } : r));
   }, [userRole]);
 
-  const handleAuth = useCallback((role) => {
+  const handleAuth = useCallback((role, email) => {
     setUserRole(role);
+    setCurrentUserEmail(email);
     setView('dash');
   }, []);
 
@@ -961,6 +1066,7 @@ const App = () => {
       title: sanitize(e.target.title.value),
       category: e.target.category.value,
       content: sanitize(e.target.content.value),
+      author: currentUserEmail,
       upvotes: 0,
       status: 'Pending',
       timestamp: Date.now(),
@@ -1004,8 +1110,18 @@ const App = () => {
               onAddReport={addReport} 
               onAddComment={handleAddComment}
               onStatusChange={handleStatusChange}
+              onDeleteReport={handleDeleteReport}
               userVotes={userVotes}
               winWidth={winWidth}
+            />
+          )}
+          {view === 'dev' && (
+            <DevPanel 
+              reports={reports} 
+              users={registeredUsers} 
+              onDelete={handleDeleteReport} 
+              onStatusChange={handleStatusChange}
+              onBack={() => setView('dash')}
             />
           )}
         </>
