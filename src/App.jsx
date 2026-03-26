@@ -10,6 +10,7 @@ import { sanitize, checkRateLimit, canPerformAction, anonymizeReport } from './s
 // --- CONSTANTS ---
 const CATEGORIES = ['Facilities', 'Harassment', 'Academics', 'Safety', 'Suggestions', 'Other'];
 const STATUSES = ['Under Review', 'Resolved', 'Pending'];
+const isMobileDevice = typeof window !== 'undefined' && window.innerWidth <= 1024;
 
 // --- COMPONENTS ---
 
@@ -163,6 +164,25 @@ const SystemTerminal = () => {
     </div>
   );
 };
+
+const BottomNav = memo(({ activeTab, onTabChange }) => (
+  <nav className="bottom-nav-v26">
+    {[
+      { id: 'feed', icon: <Radio size={20} />, label: 'Feed' },
+      { id: 'notifications', icon: <Bell size={20} />, label: 'Intel' },
+      { id: 'profile', icon: <User size={20} />, label: 'Profile' }
+    ].map(item => (
+      <div 
+        key={item.id} 
+        className={`bn-item ${activeTab === item.id ? 'active' : ''}`}
+        onClick={() => onTabChange(item.id)}
+      >
+        {item.icon}
+        <span>{item.label}</span>
+      </div>
+    ))}
+  </nav>
+));
 
 const SidePanel = memo(({ reports, topReports }) => (
   <aside className="side-info-v7" style={{ width: '100%' }}>
@@ -374,7 +394,6 @@ const Dashboard = memo(({ reports, role, onLogout, onVote, onAddReport, onAddCom
   const [activeTab, setActiveTab] = useState('feed');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [subState, setSubState] = useState('idle'); // idle, loading, success
-  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const isMobile = winWidth <= 1024;
 
   const topReports = useMemo(() => {
@@ -396,53 +415,45 @@ const Dashboard = memo(({ reports, role, onLogout, onVote, onAddReport, onAddCom
   
   return (
     <div className="dash-layout-v7">
-      {/* 📱 MOBILE HEADER (V20) */}
-      <div className="mobile-header-v20">
-         <div className="nav-logo" style={{ marginBottom: 0, display: 'block', fontSize: '18px' }}>GABBAR.</div>
-         <button className="vote-btn-v8" style={{ width: '44px', height: '44px' }} onClick={() => setIsMobileNavOpen(true)}>
-            <Menu size={24} />
-         </button>
+      {/* 📱 MOBILE HEADER (GABBAR BRANDING) */}
+      <div className="mobile-header-v20" style={{ justifyContent: 'center' }}>
+          <div className="nav-logo" style={{ marginBottom: 0, display: 'block', fontSize: '18px' }}>GABBAR.</div>
       </div>
 
       <AnimatePresence>
-        {isMobileNavOpen && (
-          <motion.div 
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="mobile-overlay-v20" 
-            onClick={() => setIsMobileNavOpen(false)} 
-          />
-        )}
+        {/* Mobile Overlay Removed (Bottom Nav Used instead) */}
       </AnimatePresence>
 
-      {/* 🧭 LEFT SIDEBAR */}
-      <aside className={`side-nav-v7 ${isMobileNavOpen ? 'open' : ''}`}>
-        <div className="flex-v6" style={{ width: '100%', justifyContent: 'space-between', marginBottom: '40px' }}>
-           <div className="nav-logo" style={{ marginBottom: 0 }}>GABBAR.</div>
-           <button className="vote-btn-v8 mobile-only" style={{ width: '32px', height: '32px', display: 'none' }} onClick={() => setIsMobileNavOpen(false)}>
-              <X size={18} />
-           </button>
-        </div>
-        <nav className="nav-list">
-          {[
-            { id: 'feed', label: 'Feed', icon: <Radio size={18} /> },
-            { id: 'notifications', label: 'Notifications', icon: <Bell size={18} /> },
-            { id: 'profile', label: 'Profile', icon: <User size={18} /> }
-          ].map(item => (
-            <div 
-              key={item.id} 
-              className={`nav-item-v7 ${activeTab === item.id ? 'active' : ''}`}
-              onClick={() => { setActiveTab(item.id); setIsMobileNavOpen(false); }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                {item.icon} <span>{item.label}</span>
+      {/* 🧭 NAVIGATION (DESKTOP: SIDEBAR / MOBILE: BOTTOM NAV) */}
+      {!isMobile && (
+        <aside className="side-nav-v7">
+          <div className="flex-v6" style={{ width: '100%', justifyContent: 'space-between', marginBottom: '40px' }}>
+             <div className="nav-logo" style={{ marginBottom: 0 }}>GABBAR.</div>
+          </div>
+          <nav className="nav-list">
+            {[
+              { id: 'feed', label: 'Feed', icon: <Radio size={18} /> },
+              { id: 'notifications', label: 'Notifications', icon: <Bell size={18} /> },
+              { id: 'profile', label: 'Profile', icon: <User size={18} /> }
+            ].map(item => (
+              <div 
+                key={item.id} 
+                className={`nav-item-v7 ${activeTab === item.id ? 'active' : ''}`}
+                onClick={() => setActiveTab(item.id)}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  {item.icon} <span>{item.label}</span>
+                </div>
               </div>
-            </div>
-          ))}
-        </nav>
-        <div className="nav-item-v7" onClick={onLogout} style={{ marginTop: 'auto', opacity: 0.6, gap: '12px' }}>
-          Logout <LogOut size={16} />
-        </div>
-      </aside>
+            ))}
+          </nav>
+          <div className="nav-item-v7" onClick={onLogout} style={{ marginTop: 'auto', opacity: 0.6, gap: '12px' }}>
+            Logout <LogOut size={16} />
+          </div>
+        </aside>
+      )}
+
+      {isMobile && <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />}
 
       {/* 📦 MAIN FEED */}
       <main className="main-feed-v7">
@@ -605,7 +616,13 @@ const Dashboard = memo(({ reports, role, onLogout, onVote, onAddReport, onAddCom
         </aside>
       )}
 
-      <div className="fab-v7" onClick={() => setIsFormOpen(true)}><Plus size={28} /></div>
+      <motion.div 
+        whileTap={isMobile ? { scale: 0.96 } : {}}
+        className="fab-v7" 
+        onClick={() => setIsFormOpen(true)}
+      >
+        <Plus size={28} />
+      </motion.div>
 
       {isFormOpen && (
         <div className="modal-overlay-v9 anim-fade-in" onClick={() => subState === 'idle' && setIsFormOpen(false)}>
