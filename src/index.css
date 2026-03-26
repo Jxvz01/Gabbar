@@ -229,6 +229,22 @@ body, html {
 .anim-spin { animation: spin 1s linear infinite; }
 @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
+/* 🛡️ DOMAIN LOCKDOWN V27: ERROR UI */
+.input-error-v27 {
+  border-color: #ef4444 !important;
+  background: rgba(239, 68, 68, 0.05) !important;
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.2) !important;
+}
+.error-msg-v27 {
+  color: #ef4444;
+  font-size: 11px;
+  font-weight: 800;
+  margin-top: 8px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-align: left;
+}
+
 /* 🧱 MODERN DASHBOARD V7: RESPONSIVE OVERHAUL (PATCH V22) */
 .dash-layout-v7 { 
   display: grid; grid-template-columns: 260px 1fr 400px; 

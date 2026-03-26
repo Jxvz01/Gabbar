@@ -5,7 +5,7 @@ import {
   Radio, Shield, Activity, FileText, CheckCircle, ChevronUp, ChevronDown, Lock, Loader2, Edit3, ArrowRight, Zap, MessageCircle, Send, AlertTriangle, Menu, X 
 } from 'lucide-react';
 import './index.css';
-import { sanitize, checkRateLimit, canPerformAction, anonymizeReport } from './security';
+import { sanitize, checkRateLimit, canPerformAction, anonymizeReport, isValidCollegeEmail } from './security';
 
 // --- CONSTANTS ---
 const CATEGORIES = ['Facilities', 'Harassment', 'Academics', 'Safety', 'Suggestions', 'Other'];
@@ -345,7 +345,21 @@ const AdminProfileView = memo(({ reports, onStatusChange }) => {
 const AuthPage = memo(({ initialMode = 'login', onAuthSuccess, onBack }) => {
   const [mode, setMode] = useState(initialMode);
   const [role, setRole] = useState('Student');
+  const [email, setEmail] = useState('');
+  const [authError, setAuthError] = useState('');
   
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setAuthError('');
+    
+    if (!isValidCollegeEmail(email)) {
+      setAuthError('Only VVCE college email IDs are allowed');
+      return;
+    }
+    
+    onAuthSuccess(role);
+  };
+
   return (
     <div className="auth-master page-transition">
       <div className="auth-box glass-v3 anim-slide-up">
@@ -353,7 +367,7 @@ const AuthPage = memo(({ initialMode = 'login', onAuthSuccess, onBack }) => {
         <h2 className="auth-h2">{mode === 'login' ? 'LOGIN' : 'SIGN UP'} TO HUB</h2>
         <p className="auth-p" style={{color: 'var(--accent-emerald)'}}>Establishing secure comm-link...</p>
         
-        <form onSubmit={(e) => {e.preventDefault(); onAuthSuccess(role);}} className="auth-f">
+        <form onSubmit={handleSubmit} className="auth-f">
           <div className="input-group-v4">
             <label className="label-v4" style={{color: 'var(--accent-purple)', fontWeight: '800'}}>ACCESS ROLE</label>
             <select className="select-v4" value={role} onChange={(e) => setRole(e.target.value)}>
@@ -363,7 +377,18 @@ const AuthPage = memo(({ initialMode = 'login', onAuthSuccess, onBack }) => {
             </select>
           </div>
 
-          <input className="input-v3" type="email" placeholder="CAMPUS EMAIL" required />
+          <div style={{ width: '100%', marginBottom: '24px' }}>
+             <input 
+               className={`input-v3 ${authError ? 'input-error-v27' : ''}`} 
+               type="email" 
+               placeholder="CAMPUS EMAIL (@vvce.ac.in)" 
+               value={email}
+               onChange={(e) => { setEmail(e.target.value); setAuthError(''); }}
+               required 
+             />
+             {authError && <div className="error-msg-v27 anim-fade-in">{authError}</div>}
+          </div>
+
           <input className="input-v3" type="password" placeholder="ENCRYPTION KEY" defaultValue="pass123" required />
           
           {mode === 'signup' && (
@@ -378,11 +403,11 @@ const AuthPage = memo(({ initialMode = 'login', onAuthSuccess, onBack }) => {
         <div className="auth-toggle-v4">
           {mode === 'login' ? (
             <>
-              <p>New operative? <span onClick={() => setMode('signup')}>Request Access</span></p>
+              <p>New operative? <span onClick={() => { setMode('signup'); setAuthError(''); }}>Request Access</span></p>
               <p className="forgot-p" onClick={() => alert('INTELLIGENCE RECOVERY: Contact System Admin for key reset.')}>Forgot encryption key?</p>
             </>
           ) : (
-            <p>Already registered? <span onClick={() => setMode('login')}>Authenticate</span></p>
+            <p>Already registered? <span onClick={() => { setMode('login'); setAuthError(''); }}>Authenticate</span></p>
           )}
         </div>
       </div>
