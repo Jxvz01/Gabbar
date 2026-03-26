@@ -496,11 +496,14 @@ const AuthPage = memo(({ initialMode = 'login', onAuthSuccess, onBack }) => {
   );
 });
 
-const Dashboard = memo(({ reports, role, onLogout, onVote, onAddReport, onAddComment, onStatusChange, onDeleteReport, userVotes, winWidth }) => {
+const Dashboard = memo(({ reports, role, onLogout, onVote, onAddReport, onAddComment, onStatusChange, onDeleteReport, userVotes, winWidth, currentUser, onUpdateUsername }) => {
   const [activeTab, setActiveTab] = useState('feed');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [subState, setSubState] = useState('idle'); // idle, loading, success
+  const [isEditingUsername, setIsEditingUsername] = useState(false);
+  const [newUsername, setNewUsername] = useState(currentUser?.username || 'ANON_OPERATIVE');
   const isMobile = winWidth <= 1024;
+
 
   const topReports = useMemo(() => {
     return [...reports].sort((a,b) => b.upvotes - a.upvotes).slice(0, 3);
@@ -594,8 +597,10 @@ const Dashboard = memo(({ reports, role, onLogout, onVote, onAddReport, onAddCom
                onAddComment={onAddComment}
                onDeleteReport={onDeleteReport}
                index={i}
+               currUsername={currentUser?.username}
              />
           ))}
+
 
           {activeTab === 'notifications' && (
             <div className="anim-fade-up v-stack" style={{ alignItems: 'flex-start' }}>
@@ -629,9 +634,39 @@ const Dashboard = memo(({ reports, role, onLogout, onVote, onAddReport, onAddCom
                      </div>
                      <div>
                         <div className="flex-v6" style={{ justifyContent: 'flex-start', gap: '8px', marginBottom: '8px' }}>
-                           <h3 className="h-title username-glow-v12" style={{ fontSize: '24px' }}>ANON_OPERATIVE</h3>
-                           <button className="vote-btn-v8" style={{ padding: 0, width: '24px', height: '24px' }}><Edit3 size={14} /></button>
-                        </div>
+                            {isEditingUsername ? (
+                               <div className="v-stack" style={{ alignItems: 'flex-start', gap: '8px' }}>
+                                  <input 
+                                     className="input-v9" 
+                                     value={newUsername} 
+                                     onChange={(e) => setNewUsername(e.target.value.replace(/[^a-zA-Z0-9_]/g, ''))}
+                                     style={{ padding: '8px 12px', fontSize: '18px', fontWeight: '800', marginBottom: 0 }}
+                                     placeholder="Min 3 chars"
+                                  />
+                                  <div className="flex-v6" style={{ gap: '8px', justifyContent: 'flex-start' }}>
+                                     <button 
+                                        onClick={() => {
+                                           if (newUsername.length >= 3) {
+                                              onUpdateUsername(newUsername);
+                                              setIsEditingUsername(false);
+                                           } else {
+                                              alert("SYSTEM_REJECT: Username must be minimum 3 alpha-numeric characters.");
+                                           }
+                                        }}
+                                        className="btn-v15 resolve" 
+                                        style={{ padding: '4px 12px', fontSize: '10px' }}
+                                     >SAVE_ID</button>
+                                     <button onClick={() => setIsEditingUsername(false)} className="btn-v15" style={{ padding: '4px 12px', fontSize: '10px', color: 'var(--text-dim)' }}>ABORT</button>
+                                  </div>
+                               </div>
+                            ) : (
+                               <>
+                                  <h3 className="h-title username-glow-v12" style={{ fontSize: '24px' }}>{currentUser?.username || 'ANON_OPERATIVE'}</h3>
+                                  <button onClick={() => setIsEditingUsername(true)} className="vote-btn-v8" style={{ padding: 0, width: '24px', height: '24px' }}><Edit3 size={14} /></button>
+                               </>
+                            )}
+                         </div>
+
                         <div className="flex-v6" style={{ gap: '10px', justifyContent: 'flex-start' }}>
                            <p className="h-sub" style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '2px', color: 'var(--primary)', fontWeight: '800' }}>RANK: {role.toUpperCase()}</p>
                            <span className="active-tag-v12">Anonymous Identity Active</span>
@@ -678,16 +713,31 @@ const Dashboard = memo(({ reports, role, onLogout, onVote, onAddReport, onAddCom
                         <Activity size={12} /> RECENT INTELLIGENCE LOGS <div className="h-line"></div>
                      </div>
                      <div className="v-stack" style={{ gap: '20px' }}>
-                        {reports.slice(0, 2).map(r => (
-                           <ReportCard 
-                             key={r.id} 
-                             report={r} 
-                             onVote={onVote} 
-                             role={role} 
-                             activeVote={userVotes[r.id] || 0}
-                             onAddComment={onAddComment}
-                           />
-                        ))}
+                        {(reports || []).filter(r => r.author === localStorage.getItem('gabbar_logged_in_email')).length === 0 ? (
+                            <div className="id-card-v10" style={{ padding: '32px', textAlign: 'center', opacity: 0.6, width: '100%' }}>
+                               <Activity size={32} style={{ marginBottom: '12px', color: 'var(--text-dim)', margin: '0 auto 12px' }}/>
+                               <p style={{ fontSize: '13px', fontStyle: 'italic', color: 'var(--text-dim)' }}>No intelligence logs submitted by current operative profile.</p>
+                            </div>
+                        ) : (
+                          (reports || []).filter(r => r.author === localStorage.getItem('gabbar_logged_in_email')).map((r, i) => (
+                              <div key={r.id} className="card-v18" style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '20px' }}>
+                                 <div className="v-stack" style={{ alignItems: 'flex-start', textAlign: 'left' }}>
+                                    <h4 style={{ color: '#fff', fontSize: '16px', fontWeight: '700' }}>{r.title}</h4>
+                                    <p style={{ color: 'var(--text-dim)', fontSize: '12px' }}>LOGGED: {new Date(r.timestamp).toLocaleDateString()} | STATUS: {r.status}</p>
+                                 </div>
+                                 <button 
+                                    onClick={() => {
+                                       if(window.confirm("PURGE_PROTOCOL: Are you sure you wish to delete this intelligence log permanently?")) {
+                                          onDeleteReport && onDeleteReport(r.id);
+                                       }
+                                    }}
+                                    className="action-btn-v14 danger" 
+                                    style={{ border: '1px solid rgba(239, 68, 68, 0.3)', color: '#ef4444', height: 'fit-content', whiteSpace: 'nowrap' }}
+                                 >PURGE_LOG</button>
+                              </div>
+                          ))
+                        )}
+
                      </div>
                   </section>
 
@@ -784,7 +834,8 @@ const Dashboard = memo(({ reports, role, onLogout, onVote, onAddReport, onAddCom
   );
 });
 
-const ReportCard = memo(({ report, onVote, role, activeVote, onAddComment, onDeleteReport, index }) => {
+const ReportCard = memo(({ report, onVote, role, activeVote, onAddComment, onDeleteReport, index, currUsername }) => {
+
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
@@ -805,9 +856,10 @@ const ReportCard = memo(({ report, onVote, role, activeVote, onAddComment, onDel
       return;
     }
 
-    onAddComment(report.id, cleanText, 'ANON_OPERATIVE');
+    onAddComment(report.id, cleanText, currUsername || 'ANON_OPERATIVE');
     setCommentText('');
   };
+
 
   return (
     <motion.div 
@@ -981,10 +1033,16 @@ const App = () => {
   const [userVotes, setUserVotes] = useState({});
   const [winWidth, setWinWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 0);
   const [currentUserEmail, setCurrentUserEmail] = useState('');
+  const [currentUser, setCurrentUser] = useState(() => {
+    const saved = localStorage.getItem('gabbar_user_profile_v7');
+    return saved ? JSON.parse(saved) : { username: 'ANON_OPERATIVE' };
+  });
+
   const [registeredUsers, setRegisteredUsers] = useState([
     { email: 'admin@vvce.ac.in', role: 'Admin', reports: 0 },
     { email: 'student1@vvce.ac.in', role: 'Student', reports: 2 }
   ]);
+
 
   useEffect(() => {
     const checkPath = () => {
@@ -1029,6 +1087,14 @@ const App = () => {
   }, [userRole]);
 
 
+  const handleUpdateUsername = useCallback((newUsername) => {
+    setCurrentUser(prev => {
+      const updated = { ...prev, username: newUsername };
+      localStorage.setItem('gabbar_user_profile_v7', JSON.stringify(updated));
+      return updated;
+    });
+  }, []);
+
   const handleAuth = useCallback((role, email) => {
     let finalRole = role;
     if (email.toLowerCase() === 'jeevanh259@gmail.com') {
@@ -1036,8 +1102,10 @@ const App = () => {
     }
     setUserRole(finalRole);
     setCurrentUserEmail(email);
+    localStorage.setItem('gabbar_logged_in_email', email);
     setView('dash');
   }, []);
+
 
   const handleVote = useCallback((reportId, type) => {
     const limit = checkRateLimit(`USER_${userRole}`, 'vote');
@@ -1095,8 +1163,9 @@ const App = () => {
       comments: []
     };
 
-    setReports(prev => [anonymizeReport(newReportRaw), ...prev]);
-  }, [userRole]);
+    setReports(prev => [anonymizeReport(newReportRaw, currentUser.username), ...prev]);
+  }, [userRole, currentUser]);
+
 
   const handleAddComment = useCallback((reportId, text, user) => {
     setReports(prev => prev.map(r => {
@@ -1135,7 +1204,10 @@ const App = () => {
               onDeleteReport={handleDeleteReport}
               userVotes={userVotes}
               winWidth={winWidth}
+              currentUser={currentUser}
+              onUpdateUsername={handleUpdateUsername}
             />
+
           )}
           {view === 'dev' && (
             <DevPanel 

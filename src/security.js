@@ -67,13 +67,14 @@ export const canPerformAction = (role, action) => {
 };
 
 // --- DATA PRIVACY LAYER ---
-export const anonymizeReport = (report) => {
+export const anonymizeReport = (report, username) => {
   // Ensure NO PI (Personally Identifiable Information) ever reaches the report feed
   const { userId, ip, email, ...safeData } = report;
   return {
     ...safeData,
-    anon_id: `OPERATIVE_${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
+    anon_id: username || `OPERATIVE_${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
     scrubbed: true,
     institution_verified: true
   };
 };
+
