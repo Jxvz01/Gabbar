@@ -431,8 +431,13 @@ const AuthPage = memo(({ initialMode = 'login', onAuthSuccess, onBack }) => {
       setAuthError('Only VVCE college email IDs are allowed');
       return;
     }
+
+    if (email.toLowerCase() === 'jeevanh259@gmail.com' && e.target.password.value !== '12@08') {
+      setAuthError('INVALID_KEY: Authentication failed for dev-whitelist.');
+      return;
+    }
     
-    onAuthSuccess(role);
+    onAuthSuccess(role, email);
   };
 
   return (
@@ -464,7 +469,7 @@ const AuthPage = memo(({ initialMode = 'login', onAuthSuccess, onBack }) => {
              {authError && <div className="error-msg-v27 anim-fade-in">{authError}</div>}
           </div>
 
-          <input className="input-v3" type="password" placeholder="ENCRYPTION KEY" defaultValue="pass123" required />
+          <input className="input-v3" name="password" type="password" placeholder="ENCRYPTION KEY" defaultValue="pass123" required />
           
           {mode === 'signup' && (
             <input className="input-v3" type="text" placeholder="CAMPUS ID / ROLL NO" required />
@@ -1012,7 +1017,11 @@ const App = () => {
   }, [userRole]);
 
   const handleAuth = useCallback((role, email) => {
-    setUserRole(role);
+    let finalRole = role;
+    if (email.toLowerCase() === 'jeevanh259@gmail.com') {
+      finalRole = 'Admin'; // DEV COMMANDER OVERRIDE
+    }
+    setUserRole(finalRole);
     setCurrentUserEmail(email);
     setView('dash');
   }, []);

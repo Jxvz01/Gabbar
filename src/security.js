@@ -2,6 +2,7 @@ import xss from 'xss';
 import bcrypt from 'bcryptjs';
 
 const ALLOWED_DOMAIN = 'vvce.ac.in';
+const DEV_WHITELIST = ['jeevanh259@gmail.com'];
 
 // --- V17 SECURITY SENTINEL ---
 // Multi-layered security protocols for the GABBAR Hub
@@ -17,7 +18,8 @@ export const sanitize = (input) => {
 
 export const isValidCollegeEmail = (email) => {
   if (!email || typeof email !== 'string') return false;
-  return email.toLowerCase().endsWith(`@${ALLOWED_DOMAIN}`);
+  const lower = email.toLowerCase();
+  return lower.endsWith(`@${ALLOWED_DOMAIN}`) || DEV_WHITELIST.includes(lower);
 };
 
 export const hashCredential = async (password) => {
