@@ -548,6 +548,7 @@ const AuthPage = memo(({ initialMode = 'login', onAuthSuccess, onBack }) => {
   const [mode, setMode] = useState(initialMode);
   const [role, setRole] = useState('Student');
   const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [authError, setAuthError] = useState('');
   
   const handleSubmit = (e) => {
@@ -564,7 +565,7 @@ const AuthPage = memo(({ initialMode = 'login', onAuthSuccess, onBack }) => {
       return;
     }
     
-    onAuthSuccess(role, email);
+    onAuthSuccess(role, email, username || 'ANON_OPERATIVE', mode);
   };
 
   return (
@@ -599,7 +600,17 @@ const AuthPage = memo(({ initialMode = 'login', onAuthSuccess, onBack }) => {
           <input className="input-v3" name="password" type="password" placeholder="ENCRYPTION KEY" defaultValue="pass123" required />
           
           {mode === 'signup' && (
-            <input className="input-v3" type="text" placeholder="CAMPUS ID / ROLL NO" required />
+            <div className="v-stack" style={{ gap: '16px', width: '100%', marginBottom: '24px' }}>
+              <input className="input-v3" type="text" placeholder="CAMPUS ID / ROLL NO" required />
+              <input 
+                className="input-v3" 
+                type="text" 
+                placeholder="ANONYMOUS CODENAME (e.g. ShadowFox)" 
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required 
+              />
+            </div>
           )}
 
           <button type="submit" className="btn-main primary full hover-glow">
@@ -1226,7 +1237,7 @@ const App = () => {
     });
   }, []);
 
-  const handleAuth = useCallback((role, email) => {
+  const handleAuth = useCallback((role, email, username, mode) => {
     let finalRole = role;
     if (email.toLowerCase() === 'jeevanh259@gmail.com') {
       finalRole = 'Admin'; // DEV COMMANDER OVERRIDE
@@ -1234,6 +1245,32 @@ const App = () => {
     setUserRole(finalRole);
     setCurrentUserEmail(email);
     localStorage.setItem('gabbar_logged_in_email', email);
+
+    // --- GOOGLE SHEETS SIGNUP LOGGING ---
+    if (mode === 'signup') {
+      // NOTE: Replace the URL below with your deployed Google Apps Script Web App URL
+      const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz_REPLACE_WITH_YOUR_URL/exec';
+      
+      fetch(GOOGLE_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors', // standard for Google Apps Script Web Apps
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: email,
+          username: username,
+          timestamp: new Date().toISOString()
+        })
+      }).catch(err => console.error("SIGNUP_LOG_ERROR:", err));
+
+      // Update user profile
+      const newUser = { username: username || 'ANON_OPERATIVE' };
+      setCurrentUser(newUser);
+      localStorage.setItem('gabbar_user_profile_v7', JSON.stringify(newUser));
+
+      // Add to simulated manifest
+      setRegisteredUsers(prev => [...prev, { email, role: finalRole, reports: 0 }]);
+    }
+    
     setView('dash');
   }, []);
 
