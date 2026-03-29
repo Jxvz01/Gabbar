@@ -622,13 +622,17 @@ const AuthPage = memo(({ initialMode = 'login', onAuthSuccess, onBack }) => {
   );
 });
 
-const Dashboard = memo(({ reports, role, onLogout, onVote, onAddReport, onAddComment, onStatusChange, onDeleteReport, userVotes, winWidth, currentUser, onUpdateUsername }) => {
+const Dashboard = memo(({ reports, role, onLogout, onVote, onAddReport, onAddComment, onStatusChange, onDeleteReport, userVotes, winWidth, currentUser, onUpdateUsername, currentUserEmail }) => {
   const [activeTab, setActiveTab] = useState('feed');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [subState, setSubState] = useState('idle'); // idle, loading, success
   const [isEditingUsername, setIsEditingUsername] = useState(false);
   const [newUsername, setNewUsername] = useState(currentUser?.username || 'ANON_OPERATIVE');
   const isMobile = winWidth <= 1024;
+
+  const userReports = useMemo(() => {
+    return reports.filter(r => r.userId === currentUserEmail || r.author === currentUserEmail);
+  }, [reports, currentUserEmail]);
 
 
   const topReports = useMemo(() => {
@@ -724,6 +728,7 @@ const Dashboard = memo(({ reports, role, onLogout, onVote, onAddReport, onAddCom
                onDeleteReport={onDeleteReport}
                index={i}
                currUsername={currentUser?.username}
+               currentUserEmail={currentUserEmail}
              />
           ))}
 
@@ -802,7 +807,7 @@ const Dashboard = memo(({ reports, role, onLogout, onVote, onAddReport, onAddCom
                      <div className="reputation-v10">
                         <Zap size={16} fill="var(--primary)" style={{ opacity: 0.8, marginBottom: '4px' }} />
                         <span className="score">
-                           {(reports.filter(r => r.status === 'Resolved').length * 100) + (reports.length * 15)}
+                           {(userReports.filter(r => r.status === 'Resolved').length * 100) + (userReports.length * 15)}
                         </span>
                         <span className="label">Platform Impact Score</span>
                      </div>
@@ -822,9 +827,9 @@ const Dashboard = memo(({ reports, role, onLogout, onVote, onAddReport, onAddCom
                <div className="activity-pan-v10">
                   <div className="stat-grid-v10">
                      {[
-                       { l: 'INTEL LOGGED', v: reports.length, i: <FileText size={18} /> },
+                       { l: 'INTEL LOGGED', v: userReports.length, i: <FileText size={18} /> },
                        { l: 'HUB ACTIONS', v: '24', i: <Activity size={18} /> },
-                       { l: 'RESOLVED LOGS', v: reports.filter(r => r.status === 'Resolved').length, i: <CheckCircle size={18} /> }
+                       { l: 'RESOLVED LOGS', v: userReports.filter(r => r.status === 'Resolved').length, i: <CheckCircle size={18} /> }
                      ].map((stat, i) => (
                        <div key={i} className="stat-mini-v10" style={{ position: 'relative', overflow: 'hidden' }}>
                           <div style={{ color: 'var(--primary)', opacity: 0.6, marginBottom: '16px' }}>{stat.i}</div>
@@ -839,13 +844,13 @@ const Dashboard = memo(({ reports, role, onLogout, onVote, onAddReport, onAddCom
                         <Activity size={12} /> RECENT INTELLIGENCE LOGS <div className="h-line"></div>
                      </div>
                      <div className="v-stack" style={{ gap: '20px' }}>
-                        {(reports || []).filter(r => r.author === localStorage.getItem('gabbar_logged_in_email')).length === 0 ? (
+                        {userReports.length === 0 ? (
                             <div className="id-card-v10" style={{ padding: '32px', textAlign: 'center', opacity: 0.6, width: '100%' }}>
                                <Activity size={32} style={{ marginBottom: '12px', color: 'var(--text-dim)', margin: '0 auto 12px' }}/>
                                <p style={{ fontSize: '13px', fontStyle: 'italic', color: 'var(--text-dim)' }}>No intelligence logs submitted by current operative profile.</p>
                             </div>
                         ) : (
-                          (reports || []).filter(r => r.author === localStorage.getItem('gabbar_logged_in_email')).map((r, i) => (
+                          userReports.map((r, i) => (
                               <div key={r.id} className="card-v18" style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '20px' }}>
                                  <div className="v-stack" style={{ alignItems: 'flex-start', textAlign: 'left' }}>
                                     <h4 style={{ color: '#fff', fontSize: '16px', fontWeight: '700' }}>{r.title}</h4>
@@ -960,7 +965,7 @@ const Dashboard = memo(({ reports, role, onLogout, onVote, onAddReport, onAddCom
   );
 });
 
-const ReportCard = memo(({ report, onVote, role, activeVote, onAddComment, onDeleteReport, index, currUsername }) => {
+const ReportCard = memo(({ report, onVote, role, activeVote, onAddComment, onDeleteReport, index, currUsername, currentUserEmail }) => {
 
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState('');
@@ -968,7 +973,7 @@ const ReportCard = memo(({ report, onVote, role, activeVote, onAddComment, onDel
 
   const isTrending = report.upvotes > 70;
   const isPriority = report.category === 'Safety' || report.category === 'Harassment';
-  const isOwner = report.author && report.author === 'currentUserEmailSimulation'; 
+  const isOwner = (report.userId && report.userId === currentUserEmail) || (report.author && report.author === currentUserEmail); 
 
   const submitComment = (e) => {
     e.preventDefault();
@@ -1145,8 +1150,8 @@ const App = () => {
     try {
       const saved = localStorage.getItem('gabbar_final_v15');
       return saved ? JSON.parse(saved) : [
-        { id: '1', title: 'Suspicious drone at Night', content: 'Observed near Wing C. Security notified.', category: 'Safety', upvotes: 121, status: 'Under Review', timestamp: Date.now() - 3600000, comments: [{ id: 'c1', user: 'SilentGhost', text: 'Spotted this near the sports complex too.', time: Date.now() - 1200000 }] },
-        { id: '2', title: 'Library AC Failure', content: 'Zone 4 is non-functional.', category: 'Facilities', upvotes: 45, status: 'Pending', timestamp: Date.now() - 7200000, comments: [] }
+        { id: '1', title: 'Suspicious drone at Night', content: 'Observed near Wing C. Security notified.', category: 'Safety', upvotes: 121, status: 'Under Review', timestamp: Date.now() - 3600000, userId: 'system', author: 'system', comments: [{ id: 'c1', user: 'SilentGhost', text: 'Spotted this near the sports complex too.', time: Date.now() - 1200000 }] },
+        { id: '2', title: 'Library AC Failure', content: 'Zone 4 is non-functional.', category: 'Facilities', upvotes: 45, status: 'Pending', timestamp: Date.now() - 7200000, userId: 'system', author: 'system', comments: [] }
       ];
     } catch (e) {
       console.error("HYDRATION_ERROR: Corrupted intel recovered. Resetting...");
@@ -1283,6 +1288,7 @@ const App = () => {
       category: e.target.category.value,
       content: sanitize(e.target.content.value),
       author: currentUserEmail,
+      userId: currentUserEmail,
       upvotes: 0,
       status: 'Pending',
       timestamp: Date.now(),
@@ -1332,6 +1338,7 @@ const App = () => {
               winWidth={winWidth}
               currentUser={currentUser}
               onUpdateUsername={handleUpdateUsername}
+              currentUserEmail={currentUserEmail}
             />
 
           )}
