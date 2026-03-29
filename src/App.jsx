@@ -22,103 +22,229 @@ const LandingPage = ({ onJoin }) => {
       <div className="ambient-bg">
         <div className="ambient-orb blue"></div>
         <div className="ambient-orb purple"></div>
+        <div className="scanline"></div>
       </div>
       <div className="noise-overlay"></div>
       
-      {/* 🧱 HERO SECTION (FULL SCREEN, NO CLUTTER) */}
-      <section className="hero-v6">
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.96, y: 30 }}
-          whileInView={{ opacity: 1, scale: 1, y: 0 }}
-          transition={{ duration: 1.4, ease: [0.16, 1, 0.3, 1] }}
-          className="container-v6 v-stack"
-        >
-          <h1 className="hero-h1-v6 glow-text">Speak Freely.<br/>Stay Anonymous.</h1>
-          <p className="hero-p-v6">A secure platform for students to report issues without fear. We bridge the gap between intelligence and action with total privacy.</p>
-          <div className="flex-v6">
-            <motion.button 
-              whileHover={{ y: -3, scale: 1.05 }} 
-              whileTap={{ scale: 0.98 }}
-              className="btn-v6 primary" 
-              onClick={() => onJoin('auth', 'signup')}
-            >
-              Enter Platform
-            </motion.button>
-            <motion.button 
-              whileHover={{ y: -3, scale: 1.05 }} 
-              whileTap={{ scale: 0.98 }}
-              className="btn-v6 secondary" 
-              onClick={() => onJoin('auth', 'login')}
-            >
-              Login
-            </motion.button>
-          </div>
-        </motion.div>
+      {/* 🔥 HERO SECTION (CINEMATIC) */}
+      <section className="hero-v7">
+        <div className="hero-visual-system">
+           <div className="radar-grid"></div>
+           <motion.div 
+             animate={{ 
+               scale: [1, 1.1, 1],
+               opacity: [0.3, 0.6, 0.3],
+               boxShadow: [
+                 "0 0 40px rgba(59, 130, 246, 0.2)",
+                 "0 0 80px rgba(59, 130, 246, 0.4)",
+                 "0 0 40px rgba(59, 130, 246, 0.2)"
+               ]
+             }}
+             transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+             className="intelligence-orb"
+           ></motion.div>
+           <div className="data-rings">
+              <div className="ring ring-1"></div>
+              <div className="ring ring-2"></div>
+              <div className="ring ring-3"></div>
+           </div>
+           <div className="particle-system">
+              {[...Array(20)].map((_, i) => (
+                <motion.div 
+                  key={i}
+                  className="p-dot"
+                  initial={{ 
+                    x: Math.random() * 1000 - 500, 
+                    y: Math.random() * 1000 - 500,
+                    opacity: 0 
+                  }}
+                  animate={{ 
+                    y: [null, Math.random() * -100 - 50],
+                    opacity: [0, 0.6, 0]
+                  }}
+                  transition={{ 
+                    duration: Math.random() * 5 + 5, 
+                    repeat: Infinity, 
+                    delay: Math.random() * 5 
+                  }}
+                />
+              ))}
+           </div>
+        </div>
+
+        <div className="container-v6 hero-content-v7">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9, y: 40 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+            className="v-stack"
+          >
+            <div className="hero-label-v7"><Shield size={14} className="glow-icon" /> SECURE_PROTOCOL_V7.2</div>
+            <h1 className="hero-h1-v7">Silence is broken.<br/><span className="gradient-text">Intelligence begins.</span></h1>
+            <p className="hero-p-v7">A high-fidelity, anonymous intelligence hub for campus safety and transparency. Your voice, protected by end-to-end encryption protocols.</p>
+            
+            <div className="flex-v6" style={{ marginTop: '40px' }}>
+              <motion.button 
+                whileHover={{ y: -3, scale: 1.05, boxShadow: '0 0 30px rgba(255, 255, 255, 0.2)' }} 
+                whileTap={{ scale: 0.98 }}
+                className="btn-v7 primary" 
+                onClick={() => onJoin('auth', 'signup')}
+              >
+                INITIALIZE_ACCESS <ArrowRight size={18} style={{ marginLeft: '12px' }}/>
+              </motion.button>
+              <motion.button 
+                whileHover={{ y: -3, scale: 1.05, background: 'rgba(255, 255, 255, 0.05)' }} 
+                whileTap={{ scale: 0.98 }}
+                className="btn-v7 secondary" 
+                onClick={() => onJoin('auth', 'login')}
+              >
+                AUTHENTICATE
+              </motion.button>
+            </div>
+          </motion.div>
+        </div>
       </section>
 
-      {/* 🧊 TRUST SECTION */}
-      <section className="section-v6">
+      {/* 🧊 CORE CAPABILITIES (Cards Upgrade) */}
+      <section className="section-v7">
         <div className="container-v6">
-          <div className="flex-v6">
+          <motion.div 
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="section-header-v7"
+          >
+             <h2 className="title-v7">System Architecture</h2>
+             <p className="desc-v7">Engineered for absolute privacy and high-speed intelligence routing.</p>
+          </motion.div>
+
+          <div className="grid-v7">
             {[
-              { t: '100% Anonymous', d: 'Your identity is never stored in our reporting infrastructure.' },
-              { t: 'Secure & Private', d: 'End-to-end encryption for every submission and attachment.' },
-              { t: 'Actionable Reports', d: 'Direct line to administration for rapid issue resolution.' }
+              { t: '100% ANONYMOUS', d: 'Zero-trace reporting infrastructure. Your identity remains uncoupled from the data layers.', icon: <Lock size={24} /> },
+              { t: 'ENCRYPTED INTEL', d: 'Military-grade encryption for all media and text submissions. Privacy is not a feature, it is the core.', icon: <Shield size={24} /> },
+              { t: 'RAPID RESPONSE', d: 'Direct, prioritized communication channel to response teams without bureaucratic friction.', icon: <Zap size={24} /> }
             ].map((item, i) => (
               <motion.div 
                 key={i}
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.15, duration: 1 }}
+                transition={{ delay: i * 0.2, duration: 0.8 }}
+                whileHover={{ y: -10, scale: 1.02 }}
                 viewport={{ once: true }}
-                className="trust-card-v6"
+                className="capability-card glass-v7"
               >
-                <div className="step-icon-v6" style={{ fontSize: '14px', letterSpacing: '2px', color: 'var(--text-dim)' }}>0{i+1}</div>
-                <h3 style={{ marginBottom: '16px', fontSize: '24px', fontWeight: '700' }}>{item.t}</h3>
-                <p style={{ color: 'var(--text-secondary)', fontSize: '15px', lineHeight: '1.8', fontWeight: '300' }}>{item.d}</p>
+                <div className="card-icon-v7">{item.icon}</div>
+                <h3 className="card-title-v7">{item.t}</h3>
+                <p className="card-desc-v7">{item.d}</p>
+                <div className="card-glow-v7"></div>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ⚙️ HOW IT WORKS (CLEAN, LINEAR FLOW) */}
-      <section className="section-v6" style={{ borderTop: '1px solid var(--glass-border)' }}>
+      {/* 🛡️ SECURITY PROTOCOL (Linear Flow) */}
+      <section className="section-v7 dark-bg">
         <div className="container-v6">
-          <h2 style={{ textAlign: 'center', marginBottom: '100px', fontSize: '42px', fontWeight: '800', letterSpacing: '-0.02em' }}>The Intelligence Pathway</h2>
-          <div className="flex-v6" style={{ position: 'relative' }}>
-             <div className="flow-line-v6"></div>
+          <div className="dual-layout-v7">
+             <motion.div 
+               initial={{ opacity: 0, x: -50 }}
+               whileInView={{ opacity: 1, x: 0 }}
+               transition={{ duration: 1 }}
+               className="security-visual"
+             >
+                <div className="security-orb-v7">
+                   <Activity size={120} strokeWidth={1} className="pulse-icon" />
+                </div>
+                <div className="pulse-circles">
+                   <div className="p-circle"></div>
+                   <div className="p-circle"></div>
+                </div>
+             </motion.div>
+
+             <div className="security-content">
+                <h2 className="title-v7 left">Safety First.<br/>Always.</h2>
+                <div className="v-stack" style={{ alignItems: 'flex-start', gap: '32px' }}>
+                   {[
+                     { t: 'Metadata Stripping', d: 'All uploaded files are automatically scrubbed of EXIF and location data.' },
+                     { t: 'Zero Interaction Logging', d: 'Platform visits and interactions are never mapped to hardware identifiers.' },
+                     { t: 'Safe Channeling', d: 'Direct routing to trusted administrators via secure API tunnels.' }
+                   ].map((p, i) => (
+                     <motion.div 
+                       key={i} 
+                       initial={{ opacity: 0, y: 20 }}
+                       whileInView={{ opacity: 1, y: 0 }}
+                       transition={{ delay: i * 0.2 }}
+                       className="protocol-item"
+                     >
+                        <div className="protocol-marker"></div>
+                        <div className="v-stack" style={{ alignItems: 'flex-start' }}>
+                           <h4 className="p-title-v7">{p.t}</h4>
+                           <p className="p-desc-v7">{p.d}</p>
+                        </div>
+                     </motion.div>
+                   ))}
+                </div>
+             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ⚙️ UPLINK PATHWAY (How it works) */}
+      <section className="section-v7">
+        <div className="container-v6">
+          <h2 className="title-v7 centered">The Intelligence Pathway</h2>
+          <div className="pathway-v7">
              {[
-               { t: 'Login Securely', d: 'Authenticated via Zero-Knowledge protocols.' },
-               { t: 'Submit Report', d: 'Pure data transfer without metadata tracking.' },
-               { t: 'Admins Review', d: 'Rapid response via our encrypted feed.' }
-             ].map((step, i) => (
-               <div key={i} className="step-v6">
-                 <div className="step-icon-v6">{i + 1}</div>
-                 <h4 style={{ marginBottom: '12px', fontSize: '18px', fontWeight: '600' }}>{step.t}</h4>
-                 <p style={{ color: 'var(--text-dim)', fontSize: '14px', lineHeight: '1.6' }}>{step.d}</p>
-               </div>
+               { t: 'AUTHENTICATE', d: 'Secure campus login via institutional protocols.' },
+               { t: 'LOG_INTEL', d: 'Submit your report with optional media attachments.' },
+               { t: 'ADMIN_ACTION', d: 'Encrypted routing to relevant authorities for triage.' }
+             ].map((path, i) => (
+               <motion.div 
+                 key={i} 
+                 initial={{ opacity: 0, scale: 0.9 }}
+                 whileInView={{ opacity: 1, scale: 1 }}
+                 transition={{ delay: i * 0.2 }}
+                 className="pathway-step glass-v7"
+               >
+                 <div className="step-num-v7">0{i+1}</div>
+                 <h4 className="step-title-v7">{path.t}</h4>
+                 <p className="step-desc-v7">{path.d}</p>
+               </motion.div>
              ))}
           </div>
         </div>
       </section>
 
-      {/* 🎯 FINAL CTA SECTION */}
-      <section className="section-v6" style={{ paddingBottom: '200px' }}>
+      {/* 🎯 FINAL CTA */}
+      <section className="section-v7 final-cta">
          <motion.div 
-           initial={{ opacity: 0, y: 50, scale: 0.95 }}
-           whileInView={{ opacity: 1, y: 0, scale: 1 }}
+           initial={{ opacity: 0, y: 60 }}
+           whileInView={{ opacity: 1, y: 0 }}
            transition={{ duration: 1.2 }}
-           viewport={{ once: true }}
-           className="cta-v6"
+           className="cta-glass-v7"
          >
-            <h2 className="cta-h2-v6">Your voice matters.<br/>Stay protected.</h2>
-            <button className="btn-v6 primary" onClick={() => onJoin('auth', 'signup')}>Get Started</button>
+            <div className="cta-grid-bg"></div>
+            <h2 className="cta-h2-v7">Ready to secure your campus?</h2>
+            <p className="cta-p-v7">Join the intelligence hub and help build a safer, more transparent environment today.</p>
+            <button className="btn-v7 primary large" onClick={() => onJoin('auth', 'signup')}>INITIALIZE HUB CONNECTION</button>
+            <div className="cta-sub-v7">TRUSTED BY 500+ CAMPUS OPERATIVES</div>
          </motion.div>
       </section>
 
-      <footer className="footer-master">
-         <p className="footer-text">© 2026 GABBAR | ANONYMOUS INTELLIGENCE HUB | Developed by <a href="https://www.instagram.com/__.jxvz01" target="_blank" rel="noopener noreferrer" style={{color: 'var(--primary)', fontWeight: '800', textDecoration: 'none'}}>Jxvz01</a></p>
+      <footer className="footer-master-v7">
+         <div className="container-v6">
+            <div className="footer-layout-v7">
+               <div className="footer-brand">
+                  <div className="nav-logo" style={{ marginBottom: '12px' }}>GABBAR.</div>
+                  <p className="footer-brand-p">Next-Gen Intelligence Shield</p>
+               </div>
+               <div className="footer-links">
+                  <p className="footer-text">© 2026 GABBAR | Developed by <a href="https://www.instagram.com/__.jxvz01" target="_blank" rel="noopener noreferrer" className="dev-link">Jxvz01</a></p>
+                  <div className="security-badge">SECURE_SSL_V3</div>
+               </div>
+            </div>
+         </div>
       </footer>
     </div>
   );
