@@ -1,12 +1,32 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  TrendingUp, Clock, BarChart2, Bell, User, Plus, LogOut, 
-  Radio, Shield, Activity, FileText, CheckCircle, ChevronUp, ChevronDown, Lock, Loader2, Edit3, ArrowRight, Zap, MessageCircle, Send, AlertTriangle, Menu, X 
+  Radio, Shield, Activity, FileText, CheckCircle, ChevronUp, ChevronDown, Lock, Loader2, Edit3, ArrowRight, Zap, MessageCircle, Send, AlertTriangle, Menu, X, Bell, User, LogOut, TrendingUp, Plus 
 } from 'lucide-react';
 import './index.css';
-import { sanitize, checkRateLimit, canPerformAction, anonymizeReport, isValidCollegeEmail } from './security';
-import { supabase } from './supabaseClient';
+import { sanitize, isValidCollegeEmail, checkRateLimit, canPerformAction } from './security';
+import { auth, db } from './firebaseConfig';
+import { 
+  onAuthStateChanged, 
+  signInWithEmailAndPassword, 
+  createUserWithEmailAndPassword,
+  signOut,
+  sendEmailVerification,
+  updateProfile
+} from 'firebase/auth';
+import { 
+  collection, 
+  addDoc, 
+  updateDoc, 
+  deleteDoc, 
+  doc, 
+  onSnapshot, 
+  query, 
+  orderBy,
+  serverTimestamp,
+  setDoc,
+  getDoc
+} from 'firebase/firestore';
 
 // --- CONSTANTS ---
 const CATEGORIES = ['Facilities', 'Harassment', 'Academics', 'Safety', 'Suggestions', 'Other'];
@@ -596,18 +616,16 @@ const AuthPage = memo(({ initialMode = 'login', onAuthSuccess, onBack }) => {
         
         {isVerifying ? (
           <form onSubmit={handleVerify} className="auth-f">
-            <div style={{ width: '100%', marginBottom: '24px' }}>
-               <input 
-                 className={`input-v3 ${authError ? 'input-error-v27' : ''}`} 
-                 type="text" 
-                 placeholder="VERIFICATION_CODE (VVCE-2026)" 
-                 value={typedCode}
-                 onChange={(e) => { setTypedCode(e.target.value); setAuthError(''); }}
-                 required 
-               />
+            <div className="v-stack" style={{ gap: '16px', width: '100%', marginBottom: '24px', textAlign: 'center' }}>
+               <Shield size={48} color="var(--warning)" style={{margin: '0 auto'}} />
+               <p style={{fontSize: '14px', color:'var(--text-dim)'}}>
+                 A secure verification transmission has been sent to <strong>{email}</strong>. 
+                 Access to the hub will remain locked until the link is confirmed.
+               </p>
                {authError && <div className="error-msg-v27 anim-fade-in">{authError}</div>}
+               <button type="submit" className="btn-main primary full hover-glow">ACKNOWLEDGE VERIFICATION</button>
+               <p className="auth-toggle-v4" onClick={() => { auth.currentUser?.reload(); setAuthError('Re-checking verification status...'); }} style={{marginTop: '10px', fontSize: '11px', textDecoration: 'underline'}}>RE-CHECK STATUS</p>
             </div>
-            <button type="submit" className="btn-main primary full hover-glow">INITIALIZE_HUB_ACCESS</button>
             <p className="auth-toggle-v4" onClick={() => setIsVerifying(false)} style={{marginTop: '20px', cursor:'pointer', fontSize:'12px'}}>← Back to credentials</p>
           </form>
         ) : (
@@ -1201,76 +1219,57 @@ const App = () => {
   const [winWidth, setWinWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 0);
   const [currentUserEmail, setCurrentUserEmail] = useState('');
   const [currentUser, setCurrentUser] = useState({ username: 'ANON_OPERATIVE' });
-  const [session, setSession] = useState(null);
+  const [fbUser, setFbUser] = useState(null);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      if (session) {
-        setUserRole(session.user.user_metadata.role || 'Student');
-        setCurrentUserEmail(session.user.email);
-        setCurrentUser({ username: session.user.user_metadata.username || 'ANON_OPERATIVE' });
-        setView('dash');
-      }
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      if (session) {
-        setUserRole(session.user.user_metadata.role || 'Student');
-        setCurrentUserEmail(session.user.email);
-        setCurrentUser({ username: session.user.user_metadata.username || 'ANON_OPERATIVE' });
-        setView('dash');
+    const unsubAuth = onAuthStateChanged(auth, (user) => {
+      setFbUser(user);
+      if (user) {
+        // Simple role simulation: Dev email is Admin
+        const role = user.email === 'jeevanh259@gmail.com' ? 'Admin' : 'Student';
+        setUserRole(role);
+        setCurrentUserEmail(user.email);
+        setCurrentUser({ username: user.displayName || 'ANON_OPERATIVE' });
+        if (user.emailVerified) setView('dash');
       } else {
         setView('landing');
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => unsubAuth();
   }, []);
 
   useEffect(() => {
-    const fetchReports = async () => {
-      const { data, error } = await supabase
-        .from('reports')
-        .select('*')
-        .order('timestamp', { ascending: false });
-      
-      if (!error && data) {
-        setReports(data.map(r => ({ ...r, comments: r.comments || [] })));
-      }
-    };
-    if (session) fetchReports();
-  }, [session]);
+    if (!fbUser) return;
+    
+    const q = query(collection(db, "reports"), orderBy("timestamp", "desc"));
+    const unsubSnap = onSnapshot(q, (snapshot) => {
+      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setReports(data);
+    });
+
+    return () => unsubSnap();
+  }, [fbUser]);
 
   const handleBootComplete = useCallback(() => {
     setIsBooting(false);
     if (nextView) setView(nextView);
   }, [nextView]);
 
-  const handleStatusChange = useCallback(async (id, newStatus) => {
-    if (!canPerformAction(userRole, 'manage_status')) {
-      alert("UNAUTHORIZED: Elevating credentials required for status management.");
-      return;
+  const handleStatusChange = useCallback(async (reportId, newStatus) => {
+    try {
+      const reportRef = doc(db, "reports", reportId);
+      await updateDoc(reportRef, { status: newStatus });
+    } catch (error) {
+      console.error("STATUS_UPDATE_ERROR:", error);
     }
-    const { error } = await supabase
-      .from('reports')
-      .update({ status: newStatus })
-      .eq('id', id);
-    
-    if (!error) {
-      setReports(prev => prev.map(r => r.id === id ? { ...r, status: newStatus } : r));
-    }
-  }, [userRole]);
+  }, []);
 
-  const handleDeleteReport = useCallback(async (id) => {
-    const { error } = await supabase
-      .from('reports')
-      .delete()
-      .eq('id', id);
-
-    if (!error) {
-      setReports(prev => prev.filter(r => r.id !== id));
+  const handleDeleteReport = useCallback(async (reportId) => {
+    try {
+      await deleteDoc(doc(db, "reports", reportId));
+    } catch (error) {
+      console.error("DELETE_ERROR:", error);
     }
   }, []);
 
@@ -1278,28 +1277,26 @@ const App = () => {
     e.preventDefault();
     if (!canPerformAction(userRole, 'submit_report')) return;
 
-    const newReportRaw = {
-      title: sanitize(e.target.title.value),
-      category: e.target.category.value,
-      content: sanitize(e.target.content.value),
-      author: currentUserEmail,
-      user_id: session?.user?.id,
-      upvotes: 0,
-      status: 'Pending',
-      timestamp: Date.now(),
-      comments: []
-    };
+    try {
+      const newReport = {
+        title: sanitize(e.target.title.value),
+        category: e.target.category.value,
+        content: sanitize(e.target.content.value),
+        author: currentUserEmail,
+        user_id: fbUser?.uid,
+        upvotes: 0,
+        status: 'Pending',
+        timestamp: Date.now(),
+        comments: []
+      };
 
-    const { data, error } = await supabase
-      .from('reports')
-      .insert([newReportRaw])
-      .select();
-
-    if (!error && data) {
-      setReports(prev => [data[0], ...prev]);
+      await addDoc(collection(db, "reports"), newReport);
+      return true;
+    } catch (error) {
+      console.error("SUBMISSION_ERROR:", error);
+      return false;
     }
-    return !error;
-  }, [userRole, currentUserEmail, session]);
+  }, [userRole, currentUserEmail, fbUser]);
 
   const handleVote = useCallback(async (reportId, type) => {
     const currentReport = reports.find(r => r.id === reportId);
@@ -1317,14 +1314,12 @@ const App = () => {
       else delta = -1;
     }
 
-    const { error } = await supabase
-      .from('reports')
-      .update({ upvotes: currentReport.upvotes + delta })
-      .eq('id', reportId);
-
-    if (!error) {
+    try {
+      const reportRef = doc(db, "reports", reportId);
+      await updateDoc(reportRef, { upvotes: currentReport.upvotes + delta });
       setUserVotes(prev => ({ ...prev, [reportId]: (currentVote === type ? 0 : type) }));
-      setReports(prev => prev.map(r => r.id === reportId ? { ...r, upvotes: r.upvotes + delta } : r));
+    } catch (error) {
+      console.error("VOTE_ERROR:", error);
     }
   }, [userVotes, reports]);
 
@@ -1335,13 +1330,11 @@ const App = () => {
     const newComment = { id: Date.now().toString(), user, text: sanitize(text), time: Date.now() };
     const updatedComments = [...(report.comments || []), newComment];
 
-    const { error } = await supabase
-      .from('reports')
-      .update({ comments: updatedComments })
-      .eq('id', reportId);
-
-    if (!error) {
-      setReports(prev => prev.map(r => r.id === reportId ? { ...r, comments: updatedComments } : r));
+    try {
+      const reportRef = doc(db, "reports", reportId);
+      await updateDoc(reportRef, { comments: updatedComments });
+    } catch (error) {
+       console.error("COMMENT_ERROR:", error);
     }
   }, [reports]);
 
@@ -1355,38 +1348,71 @@ const App = () => {
   }, []);
 
   const handleAuth = async (role, email, username, mode, password) => {
-    if (mode === 'signup') {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: { username, role }
+    try {
+      if (!isValidCollegeEmail(email)) {
+        return { ok: false, error: 'IDENTITY_FAILURE: Only @vvce.ac.in emails are permitted to access the hub.' };
+      }
+
+      if (mode === 'signup') {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        // Set display name as the chosen codename
+        await updateProfile(userCredential.user, { displayName: username });
+        
+        // Save initial profile to Firestore for persistence
+        await setDoc(doc(db, "users", userCredential.user.uid), {
+           email,
+           username: username || 'ANON_OPERATIVE',
+           role: role || 'Student',
+           verified: false,
+           timestamp: Date.now()
+        });
+
+        // Trigger real verification email
+        await sendEmailVerification(userCredential.user);
+        
+        return { ok: true, needsVerification: true };
+      }
+
+      if (mode === 'login') {
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        
+        if (!userCredential.user.emailVerified) {
+          // Force signout if not verified to prevent accidental session persistence
+          return { ok: false, error: 'ACCESS_DENIED: Email verification pending. Check your VVCE inbox.', needsVerification: true };
         }
-      });
-      if (error) return { ok: false, error: error.message };
-      return { ok: true, needsVerification: !data.session };
-    }
 
-    if (mode === 'login') {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
-      if (error) return { ok: false, error: error.message };
-      return { ok: true };
-    }
-
-    if (mode === 'verify') {
-      // Supabase handles verification via email links, but for simulation 
-      // if you have a manual code on backend you'd call it here.
-      // For standard Supabase, we'll just check session.
-      const { data } = await supabase.auth.getSession();
-      if (data.session) {
-        setView('dash');
+        // Sync local role from Firestore profile
+        const userDoc = await getDoc(doc(db, "users", userCredential.user.uid));
+        if (userDoc.exists()) {
+           setUserRole(userDoc.data().role || 'Student');
+           setCurrentUser({ username: userDoc.data().username });
+        }
+        
         return { ok: true };
       }
-      return { ok: false, error: 'Verification incomplete.' };
+
+      if (mode === 'verify') {
+        // Reload user to check if verification status changed
+        await auth.currentUser?.reload();
+        if (auth.currentUser?.emailVerified) {
+           // Update Firestore profile
+           await updateDoc(doc(db, "users", auth.currentUser.uid), { verified: true });
+           setView('dash');
+           return { ok: true };
+        }
+        return { ok: false, error: 'SYSTEM_ERROR: Verification not yet acknowledged by Firebase servers.' };
+      }
+    } catch (error) {
+       let errorMsg = error.message;
+       if (error.code === 'auth/email-already-in-use') errorMsg = "IDENT_ERROR: Email already exists in the hub registry.";
+       if (error.code === 'auth/invalid-credential') errorMsg = "IDENT_ERROR: Invalid hub access key.";
+       return { ok: false, error: errorMsg };
     }
+  };
+
+  const handleLogout = async () => {
+    await signOut(auth);
+    setView('landing');
   };
 
 
@@ -1407,7 +1433,7 @@ const App = () => {
             <Dashboard 
               reports={reports} 
               role={userRole} 
-              onLogout={() => setView('landing')} 
+              onLogout={handleLogout} 
               onVote={handleVote} 
               onAddReport={addReport} 
               onAddComment={handleAddComment}
