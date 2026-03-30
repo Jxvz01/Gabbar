@@ -1,32 +1,8 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Radio, Shield, Activity, FileText, CheckCircle, ChevronUp, ChevronDown, Lock, Loader2, Edit3, ArrowRight, Zap, MessageCircle, Send, AlertTriangle, Menu, X, Bell, User, LogOut, TrendingUp, Plus 
-} from 'lucide-react';
+import { Radio, Shield, Activity, FileText, CheckCircle, ChevronUp, ChevronDown, Lock, Loader2, Edit3, ArrowRight, Zap, MessageCircle, Send, AlertTriangle, Menu, X, Bell, User, LogOut, TrendingUp, Plus } from 'lucide-react';
 import './index.css';
-import { sanitize, isValidCollegeEmail, checkRateLimit, canPerformAction } from './security';
-import { auth, db } from './firebaseConfig';
-import { 
-  onAuthStateChanged, 
-  signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword,
-  signOut,
-  sendEmailVerification,
-  updateProfile
-} from 'firebase/auth';
-import { 
-  collection, 
-  addDoc, 
-  updateDoc, 
-  deleteDoc, 
-  doc, 
-  onSnapshot, 
-  query, 
-  orderBy,
-  serverTimestamp,
-  setDoc,
-  getDoc
-} from 'firebase/firestore';
+import { sanitize, isValidCollegeEmail, checkRateLimit, canPerformAction, anonymizeReport } from './security';
 
 // --- CONSTANTS ---
 const CATEGORIES = ['Facilities', 'Harassment', 'Academics', 'Safety', 'Suggestions', 'Other'];
@@ -574,7 +550,7 @@ const AuthPage = memo(({ initialMode = 'login', onAuthSuccess, onBack }) => {
   const [isVerifying, setIsVerifying] = useState(false);
   const [typedCode, setTypedCode] = useState('');
   
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     setAuthError('');
     
@@ -584,7 +560,7 @@ const AuthPage = memo(({ initialMode = 'login', onAuthSuccess, onBack }) => {
     }
     
     const password = e.target.password.value;
-    const result = await onAuthSuccess(role, email, username || 'ANON_OPERATIVE', mode, password);
+    const result = onAuthSuccess(role, email, username || 'ANON_OPERATIVE', mode, password);
     if (!result?.ok) {
       setAuthError(result?.error || 'Authentication error.');
       if (result?.needsVerification) setIsVerifying(true);
@@ -616,16 +592,18 @@ const AuthPage = memo(({ initialMode = 'login', onAuthSuccess, onBack }) => {
         
         {isVerifying ? (
           <form onSubmit={handleVerify} className="auth-f">
-            <div className="v-stack" style={{ gap: '16px', width: '100%', marginBottom: '24px', textAlign: 'center' }}>
-               <Shield size={48} color="var(--warning)" style={{margin: '0 auto'}} />
-               <p style={{fontSize: '14px', color:'var(--text-dim)'}}>
-                 A secure verification transmission has been sent to <strong>{email}</strong>. 
-                 Access to the hub will remain locked until the link is confirmed.
-               </p>
+            <div style={{ width: '100%', marginBottom: '24px' }}>
+               <input 
+                 className={`input-v3 ${authError ? 'input-error-v27' : ''}`} 
+                 type="text" 
+                 placeholder="VERIFICATION_CODE (VVCE-2026)" 
+                 value={typedCode}
+                 onChange={(e) => { setTypedCode(e.target.value); setAuthError(''); }}
+                 required 
+               />
                {authError && <div className="error-msg-v27 anim-fade-in">{authError}</div>}
-               <button type="submit" className="btn-main primary full hover-glow">ACKNOWLEDGE VERIFICATION</button>
-               <p className="auth-toggle-v4" onClick={() => { auth.currentUser?.reload(); setAuthError('Re-checking verification status...'); }} style={{marginTop: '10px', fontSize: '11px', textDecoration: 'underline'}}>RE-CHECK STATUS</p>
             </div>
+            <button type="submit" className="btn-main primary full hover-glow">INITIALIZE_HUB_ACCESS</button>
             <p className="auth-toggle-v4" onClick={() => setIsVerifying(false)} style={{marginTop: '20px', cursor:'pointer', fontSize:'12px'}}>← Back to credentials</p>
           </form>
         ) : (
@@ -1212,206 +1190,147 @@ const App = () => {
   const [view, setView] = useState('landing');
   const [isBooting, setIsBooting] = useState(false);
   const [userRole, setUserRole] = useState('Student');
-  const [reports, setReports] = useState([]);
+  const [reports, setReports] = useState(() => {
+    const saved = localStorage.getItem('gabbar_hub_v19');
+    return saved ? JSON.parse(saved) : [
+      { id: '1', title: 'Suspicious drone at Night', content: 'Observed near Wing C. Security notified.', category: 'Safety', upvotes: 121, status: 'Under Review', timestamp: Date.now() - 3600000, userId: 'system', author: 'system', comments: [] },
+      { id: '2', title: 'Library AC Failure', content: 'Zone 4 is non-functional.', category: 'Facilities', upvotes: 45, status: 'Pending', timestamp: Date.now() - 7200000, userId: 'system', author: 'system', comments: [] }
+    ];
+  });
+
   const [nextView, setNextView] = useState(null);
   const [nextMode, setNextMode] = useState('login');
   const [userVotes, setUserVotes] = useState({});
   const [winWidth, setWinWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 0);
-  const [currentUserEmail, setCurrentUserEmail] = useState('');
-  const [currentUser, setCurrentUser] = useState({ username: 'ANON_OPERATIVE' });
-  const [fbUser, setFbUser] = useState(null);
+  const [currentUserEmail, setCurrentUserEmail] = useState(localStorage.getItem('gabbar_logged_in_email') || '');
+  const [currentUser, setCurrentUser] = useState(() => {
+    const saved = localStorage.getItem('gabbar_user_profile_v19');
+    return saved ? JSON.parse(saved) : { username: 'ANON_OPERATIVE' };
+  });
+
+  const [registeredUsers, setRegisteredUsers] = useState(() => {
+    const saved = localStorage.getItem('gabbar_reg_v19');
+    return saved ? JSON.parse(saved) : [
+      { email: 'admin@vvce.ac.in', role: 'Admin', reports: 0, verified: true }
+    ];
+  });
+
+  useEffect(() => { localStorage.setItem('gabbar_hub_v19', JSON.stringify(reports)); }, [reports]);
+  useEffect(() => { localStorage.setItem('gabbar_reg_v19', JSON.stringify(registeredUsers)); }, [registeredUsers]);
+  useEffect(() => { localStorage.setItem('gabbar_user_profile_v19', JSON.stringify(currentUser)); }, [currentUser]);
 
   useEffect(() => {
-    const unsubAuth = onAuthStateChanged(auth, (user) => {
-      setFbUser(user);
-      if (user) {
-        // Simple role simulation: Dev email is Admin
-        const role = user.email === 'jeevanh259@gmail.com' ? 'Admin' : 'Student';
-        setUserRole(role);
-        setCurrentUserEmail(user.email);
-        setCurrentUser({ username: user.displayName || 'ANON_OPERATIVE' });
-        if (user.emailVerified) setView('dash');
-      } else {
-        setView('landing');
-      }
-    });
-
-    return () => unsubAuth();
+    const handleResize = () => setWinWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
-
-  useEffect(() => {
-    if (!fbUser) return;
-    
-    const q = query(collection(db, "reports"), orderBy("timestamp", "desc"));
-    const unsubSnap = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setReports(data);
-    });
-
-    return () => unsubSnap();
-  }, [fbUser]);
 
   const handleBootComplete = useCallback(() => {
     setIsBooting(false);
     if (nextView) setView(nextView);
   }, [nextView]);
 
-  const handleStatusChange = useCallback(async (reportId, newStatus) => {
-    try {
-      const reportRef = doc(db, "reports", reportId);
-      await updateDoc(reportRef, { status: newStatus });
-    } catch (error) {
-      console.error("STATUS_UPDATE_ERROR:", error);
-    }
+  const handleStatusChange = useCallback((id, newStatus) => {
+    if (!canPerformAction(userRole, 'manage_status')) return;
+    setReports(prev => prev.map(r => r.id === id ? { ...r, status: newStatus } : r));
+  }, [userRole]);
+
+  const handleDeleteReport = useCallback((id) => {
+    setReports(prev => prev.filter(r => r.id !== id));
   }, []);
 
-  const handleDeleteReport = useCallback(async (reportId) => {
-    try {
-      await deleteDoc(doc(db, "reports", reportId));
-    } catch (error) {
-      console.error("DELETE_ERROR:", error);
-    }
-  }, []);
-
-  const addReport = useCallback(async (e) => {
+  const addReport = useCallback((e) => {
     e.preventDefault();
     if (!canPerformAction(userRole, 'submit_report')) return;
 
-    try {
-      const newReport = {
-        title: sanitize(e.target.title.value),
-        category: e.target.category.value,
-        content: sanitize(e.target.content.value),
-        author: currentUserEmail,
-        user_id: fbUser?.uid,
-        upvotes: 0,
-        status: 'Pending',
-        timestamp: Date.now(),
-        comments: []
-      };
+    const newReport = {
+      id: Date.now().toString(),
+      title: sanitize(e.target.title.value),
+      category: e.target.category.value,
+      content: sanitize(e.target.content.value),
+      author: currentUserEmail,
+      userId: currentUserEmail,
+      upvotes: 0,
+      status: 'Pending',
+      timestamp: Date.now(),
+      comments: []
+    };
 
-      await addDoc(collection(db, "reports"), newReport);
-      return true;
-    } catch (error) {
-      console.error("SUBMISSION_ERROR:", error);
-      return false;
-    }
-  }, [userRole, currentUserEmail, fbUser]);
+    setReports(prev => [anonymizeReport(newReport, currentUser.username), ...prev]);
+  }, [userRole, currentUserEmail, currentUser]);
 
-  const handleVote = useCallback(async (reportId, type) => {
-    const currentReport = reports.find(r => r.id === reportId);
-    if (!currentReport) return;
-
-    const currentVote = userVotes[reportId] || 0;
-    let delta = 0;
-    if (type === 1) { 
-      if (currentVote === 1) delta = -1;
-      else if (currentVote === -1) delta = 2;
-      else delta = 1;
-    } else if (type === -1) {
-      if (currentVote === -1) delta = 1;
-      else if (currentVote === 1) delta = -2;
-      else delta = -1;
-    }
-
-    try {
-      const reportRef = doc(db, "reports", reportId);
-      await updateDoc(reportRef, { upvotes: currentReport.upvotes + delta });
-      setUserVotes(prev => ({ ...prev, [reportId]: (currentVote === type ? 0 : type) }));
-    } catch (error) {
-      console.error("VOTE_ERROR:", error);
-    }
-  }, [userVotes, reports]);
-
-  const handleAddComment = useCallback(async (reportId, text, user) => {
-    const report = reports.find(r => r.id === reportId);
-    if (!report) return;
-
-    const newComment = { id: Date.now().toString(), user, text: sanitize(text), time: Date.now() };
-    const updatedComments = [...(report.comments || []), newComment];
-
-    try {
-      const reportRef = doc(db, "reports", reportId);
-      await updateDoc(reportRef, { comments: updatedComments });
-    } catch (error) {
-       console.error("COMMENT_ERROR:", error);
-    }
-  }, [reports]);
-
-
-  const handleUpdateUsername = useCallback((newUsername) => {
-    setCurrentUser(prev => {
-      const updated = { ...prev, username: newUsername };
-      localStorage.setItem('gabbar_user_profile_v7', JSON.stringify(updated));
-      return updated;
+  const handleVote = useCallback((reportId, type) => {
+    setUserVotes(prev => {
+      const current = prev[reportId] || 0;
+      return { ...prev, [reportId]: (current === type ? 0 : type) };
     });
+    setReports(prev => prev.map(r => {
+      if (r.id === reportId) {
+        const currentVote = userVotes[reportId] || 0;
+        let delta = 0;
+        if (type === 1) delta = (currentVote === 1) ? -1 : (currentVote === -1 ? 2 : 1);
+        else if (type === -1) delta = (currentVote === -1) ? 1 : (currentVote === 1 ? -2 : -1);
+        return { ...r, upvotes: r.upvotes + delta };
+      }
+      return r;
+    }));
+  }, [userVotes]);
+
+  const handleAddComment = useCallback((reportId, text, user) => {
+    setReports(prev => prev.map(r => r.id === reportId ? { 
+      ...r, 
+      comments: [...(r.comments || []), { id: Date.now().toString(), user, text: sanitize(text), time: Date.now() }] 
+    } : r));
   }, []);
 
-  const handleAuth = async (role, email, username, mode, password) => {
-    try {
-      if (!isValidCollegeEmail(email)) {
-        return { ok: false, error: 'IDENTITY_FAILURE: Only @vvce.ac.in emails are permitted to access the hub.' };
-      }
+  const handleUpdateUsername = useCallback((newUsername) => {
+    setCurrentUser(prev => ({ ...prev, username: newUsername }));
+  }, []);
 
-      if (mode === 'signup') {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        // Set display name as the chosen codename
-        await updateProfile(userCredential.user, { displayName: username });
-        
-        // Save initial profile to Firestore for persistence
-        await setDoc(doc(db, "users", userCredential.user.uid), {
-           email,
-           username: username || 'ANON_OPERATIVE',
-           role: role || 'Student',
-           verified: false,
-           timestamp: Date.now()
-        });
+  const handleAuth = (role, email, username, mode, password) => {
+    if (mode === 'signup') {
+      const existing = registeredUsers.find(u => u.email === email);
+      if (existing) return { ok: false, error: 'Identity already recognized in manifest.' };
+      
+      const newUser = { email, role, username, verified: false };
+      setRegisteredUsers(prev => [...prev, newUser]);
+      
+      // OPTIONAL: Google Sheets Logging
+      fetch('YOUR_GOOGLE_SCRIPT_URL', {
+        method: 'POST',
+        mode: 'no-cors',
+        body: JSON.stringify({ email, username, type: 'SIGNUP' })
+      }).catch(() => {});
 
-        // Trigger real verification email
-        await sendEmailVerification(userCredential.user);
-        
-        return { ok: true, needsVerification: true };
-      }
+      return { ok: true, needsVerification: true };
+    }
 
-      if (mode === 'login') {
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        
-        if (!userCredential.user.emailVerified) {
-          // Force signout if not verified to prevent accidental session persistence
-          return { ok: false, error: 'ACCESS_DENIED: Email verification pending. Check your VVCE inbox.', needsVerification: true };
-        }
+    if (mode === 'login') {
+      const user = registeredUsers.find(u => u.email === email);
+      if (!user) return { ok: false, error: 'Access Denied: Operative not found.' };
+      if (!user.verified) return { ok: false, error: 'Security Lock: Verification required.', needsVerification: true };
+      
+      setUserRole(user.role);
+      setCurrentUserEmail(email);
+      setCurrentUser({ username: user.username });
+      localStorage.setItem('gabbar_logged_in_email', email);
+      setView('dash');
+      return { ok: true };
+    }
 
-        // Sync local role from Firestore profile
-        const userDoc = await getDoc(doc(db, "users", userCredential.user.uid));
-        if (userDoc.exists()) {
-           setUserRole(userDoc.data().role || 'Student');
-           setCurrentUser({ username: userDoc.data().username });
-        }
-        
-        return { ok: true };
-      }
-
-      if (mode === 'verify') {
-        // Reload user to check if verification status changed
-        await auth.currentUser?.reload();
-        if (auth.currentUser?.emailVerified) {
-           // Update Firestore profile
-           await updateDoc(doc(db, "users", auth.currentUser.uid), { verified: true });
-           setView('dash');
-           return { ok: true };
-        }
-        return { ok: false, error: 'SYSTEM_ERROR: Verification not yet acknowledged by Firebase servers.' };
-      }
-    } catch (error) {
-       let errorMsg = error.message;
-       if (error.code === 'auth/email-already-in-use') errorMsg = "IDENT_ERROR: Email already exists in the hub registry.";
-       if (error.code === 'auth/invalid-credential') errorMsg = "IDENT_ERROR: Invalid hub access key.";
-       return { ok: false, error: errorMsg };
+    if (mode === 'verify') {
+      setRegisteredUsers(prev => prev.map(u => u.email === email ? { ...u, verified: true } : u));
+      setUserRole(role);
+      setCurrentUserEmail(email);
+      setCurrentUser({ username: username });
+      localStorage.setItem('gabbar_logged_in_email', email);
+      setView('dash');
+      return { ok: true };
     }
   };
 
-  const handleLogout = async () => {
-    await signOut(auth);
+  const handleLogout = () => {
+    localStorage.removeItem('gabbar_logged_in_email');
     setView('landing');
   };
 
