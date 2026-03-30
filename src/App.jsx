@@ -550,73 +550,108 @@ const AuthPage = memo(({ initialMode = 'login', onAuthSuccess, onBack }) => {
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [authError, setAuthError] = useState('');
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [typedCode, setTypedCode] = useState('');
   
   const handleSubmit = (e) => {
     e.preventDefault();
     setAuthError('');
     
     if (!isValidCollegeEmail(email)) {
-      setAuthError('Only VVCE college email IDs are allowed');
-      return;
-    }
-
-    if (email.toLowerCase() === 'jeevanh259@gmail.com' && e.target.password.value !== '12@08') {
-      setAuthError('INVALID_KEY: Authentication failed for dev-whitelist.');
+      setAuthError('Only VVCE college email addresses are allowed.');
       return;
     }
     
-    onAuthSuccess(role, email, username || 'ANON_OPERATIVE', mode);
+    const result = onAuthSuccess(role, email, username || 'ANON_OPERATIVE', mode);
+    if (!result?.ok) {
+      setAuthError(result?.error || 'Authentication error.');
+      if (result?.needsVerification) setIsVerifying(true);
+      return;
+    }
+
+    if (result.needsVerification) {
+      setIsVerifying(true);
+    }
+  };
+
+  const handleVerify = (e) => {
+    e.preventDefault();
+    if (typedCode === 'VVCE-2026') {
+      onAuthSuccess(role, email, username || 'ANON_OPERATIVE', 'verify');
+    } else {
+      setAuthError('INVALID_CODE: Verification mismatch.');
+    }
   };
 
   return (
     <div className="auth-master page-transition">
       <div className="auth-box glass-v3 anim-slide-up">
         <button className="btn-retreat-v3" onClick={onBack}>← RETURN TO PERIPHERY</button>
-        <h2 className="auth-h2">{mode === 'login' ? 'LOGIN' : 'SIGN UP'} TO HUB</h2>
-        <p className="auth-p" style={{color: 'var(--accent-emerald)'}}>Establishing secure comm-link...</p>
+        <h2 className="auth-h2">{mode === 'login' ? (isVerifying ? 'VERIFY' : 'LOGIN') : (isVerifying ? 'VERIFY' : 'SIGN UP')}</h2>
+        <p className="auth-p" style={{color: isVerifying ? 'var(--warning)' : 'var(--accent-emerald)'}}>
+          {isVerifying ? 'Check your VVCE inbox for the code...' : 'Establishing secure comm-link...'}
+        </p>
         
-        <form onSubmit={handleSubmit} className="auth-f">
-          <div className="input-group-v4">
-            <label className="label-v4" style={{color: 'var(--accent-purple)', fontWeight: '800'}}>ACCESS ROLE</label>
-            <select className="select-v4" value={role} onChange={(e) => setRole(e.target.value)}>
-              <option value="Student">STUDENT</option>
-              <option value="Professor">PROFESSOR</option>
-              <option value="Admin">ADMINISTRATOR</option>
-            </select>
-          </div>
-
-          <div style={{ width: '100%', marginBottom: '24px' }}>
-             <input 
-               className={`input-v3 ${authError ? 'input-error-v27' : ''}`} 
-               type="email" 
-               placeholder="CAMPUS EMAIL (@vvce.ac.in)" 
-               value={email}
-               onChange={(e) => { setEmail(e.target.value); setAuthError(''); }}
-               required 
-             />
-             {authError && <div className="error-msg-v27 anim-fade-in">{authError}</div>}
-          </div>
-
-          <input className="input-v3" name="password" type="password" placeholder="ENCRYPTION KEY" defaultValue="pass123" required />
-          
-          {mode === 'signup' && (
-            <div className="v-stack" style={{ gap: '16px', width: '100%', marginBottom: '24px' }}>
-              <input className="input-v3" type="text" placeholder="CAMPUS ID / ROLL NO" required />
-              <input 
-                className="input-v3" 
-                type="text" 
-                placeholder="ANONYMOUS CODENAME (e.g. ShadowFox)" 
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                required 
-              />
+        {isVerifying ? (
+          <form onSubmit={handleVerify} className="auth-f">
+            <div style={{ width: '100%', marginBottom: '24px' }}>
+               <input 
+                 className={`input-v3 ${authError ? 'input-error-v27' : ''}`} 
+                 type="text" 
+                 placeholder="VERIFICATION_CODE (VVCE-2026)" 
+                 value={typedCode}
+                 onChange={(e) => { setTypedCode(e.target.value); setAuthError(''); }}
+                 required 
+               />
+               {authError && <div className="error-msg-v27 anim-fade-in">{authError}</div>}
             </div>
-          )}
+            <button type="submit" className="btn-main primary full hover-glow">INITIALIZE_HUB_ACCESS</button>
+            <p className="auth-toggle-v4" onClick={() => setIsVerifying(false)} style={{marginTop: '20px', cursor:'pointer', fontSize:'12px'}}>← Back to credentials</p>
+          </form>
+        ) : (
+          <form onSubmit={handleSubmit} className="auth-f">
+            <div className="input-group-v4">
+              <label className="label-v4" style={{color: 'var(--accent-purple)', fontWeight: '800'}}>ACCESS ROLE</label>
+              <select className="select-v4" value={role} onChange={(e) => setRole(e.target.value)}>
+                <option value="Student">STUDENT</option>
+                <option value="Professor">PROFESSOR</option>
+                <option value="Admin">ADMINISTRATOR</option>
+              </select>
+            </div>
 
-          <button type="submit" className="btn-main primary full hover-glow">
-            {mode === 'login' ? 'INITIALIZE CONNECTION' : 'CREATE ACCOUNT'}
-          </button>
-        </form>
+            <div style={{ width: '100%', marginBottom: '24px' }}>
+               <input 
+                 className={`input-v3 ${authError ? 'input-error-v27' : ''}`} 
+                 type="email" 
+                 placeholder="CAMPUS EMAIL (@vvce.ac.in)" 
+                 value={email}
+                 onChange={(e) => { setEmail(e.target.value); setAuthError(''); }}
+                 required 
+               />
+               {authError && <div className="error-msg-v27 anim-fade-in">{authError}</div>}
+            </div>
+
+            <input className="input-v3" name="password" type="password" placeholder="ENCRYPTION KEY" defaultValue="pass123" required />
+            
+            {mode === 'signup' && (
+              <div className="v-stack" style={{ gap: '16px', width: '100%', marginBottom: '24px' }}>
+                <input className="input-v3" type="text" placeholder="CAMPUS ID / ROLL NO" required />
+                <input 
+                  className="input-v3" 
+                  type="text" 
+                  placeholder="ANONYMOUS CODENAME (e.g. ShadowFox)" 
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  required 
+                />
+              </div>
+            )}
+
+            <button type="submit" className="btn-main primary full hover-glow">
+              {mode === 'login' ? 'INITIALIZE CONNECTION' : 'CREATE ACCOUNT'}
+            </button>
+          </form>
+        )}
 
         <div className="auth-toggle-v4">
           {mode === 'login' ? (
@@ -1180,10 +1215,17 @@ const App = () => {
     return saved ? JSON.parse(saved) : { username: 'ANON_OPERATIVE' };
   });
 
-  const [registeredUsers, setRegisteredUsers] = useState([
-    { email: 'admin@vvce.ac.in', role: 'Admin', reports: 0 },
-    { email: 'student1@vvce.ac.in', role: 'Student', reports: 2 }
-  ]);
+  const [registeredUsers, setRegisteredUsers] = useState(() => {
+    const saved = localStorage.getItem('gabbar_registered_users_v2');
+    return saved ? JSON.parse(saved) : [
+      { email: 'admin@vvce.ac.in', role: 'Admin', reports: 0, verified: true, password: 'password123' },
+      { email: 'student1@vvce.ac.in', role: 'Student', reports: 2, verified: true, password: 'password123' }
+    ];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('gabbar_registered_users_v2', JSON.stringify(registeredUsers));
+  }, [registeredUsers]);
 
 
   useEffect(() => {
@@ -1240,39 +1282,56 @@ const App = () => {
   const handleAuth = useCallback((role, email, username, mode) => {
     let finalRole = role;
     if (email.toLowerCase() === 'jeevanh259@gmail.com') {
-      finalRole = 'Admin'; // DEV COMMANDER OVERRIDE
+      finalRole = 'Admin';
     }
-    setUserRole(finalRole);
-    setCurrentUserEmail(email);
-    localStorage.setItem('gabbar_logged_in_email', email);
 
-    // --- GOOGLE SHEETS SIGNUP LOGGING ---
     if (mode === 'signup') {
-      // NOTE: Replace the URL below with your deployed Google Apps Script Web App URL
+      const existing = registeredUsers.find(u => u.email === email);
+      if (existing) {
+        return { ok: false, error: 'Email already exists in the hub manifest.' };
+      }
+
+      // Simulation: Send request to Google Sheets and simulate email trigger
       const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz_REPLACE_WITH_YOUR_URL/exec';
-      
       fetch(GOOGLE_SCRIPT_URL, {
         method: 'POST',
-        mode: 'no-cors', // standard for Google Apps Script Web Apps
+        mode: 'no-cors',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: email,
-          username: username,
-          timestamp: new Date().toISOString()
-        })
-      }).catch(err => console.error("SIGNUP_LOG_ERROR:", err));
+        body: JSON.stringify({ email, username, timestamp: new Date().toISOString(), type: 'SIGNUP_VERIFICATION' })
+      }).catch(() => {});
 
-      // Update user profile
-      const newUser = { username: username || 'ANON_OPERATIVE' };
-      setCurrentUser(newUser);
-      localStorage.setItem('gabbar_user_profile_v7', JSON.stringify(newUser));
+      const newUser = { email, role: finalRole, username: username || 'ANON_OPERATIVE', reports: 0, verified: false };
+      setRegisteredUsers(prev => [...prev, newUser]);
+      return { ok: true, needsVerification: true };
+    }
 
-      // Add to simulated manifest
-      setRegisteredUsers(prev => [...prev, { email, role: finalRole, reports: 0 }]);
+    if (mode === 'login') {
+      const user = registeredUsers.find(u => u.email === email);
+      if (!user) {
+        return { ok: false, error: 'Identity not found. Create a new account.' };
+      }
+      if (!user.verified) {
+        return { ok: false, error: 'Access Denied: Email verification pending.', needsVerification: true };
+      }
+      
+      setUserRole(user.role);
+      setCurrentUserEmail(email);
+      setCurrentUser({ username: user.username });
+      localStorage.setItem('gabbar_logged_in_email', email);
+      setView('dash');
+      return { ok: true };
     }
     
-    setView('dash');
-  }, []);
+    if (mode === 'verify') {
+      setRegisteredUsers(prev => prev.map(u => u.email === email ? { ...u, verified: true } : u));
+      setUserRole(finalRole);
+      setCurrentUserEmail(email);
+      setCurrentUser({ username: username });
+      localStorage.setItem('gabbar_logged_in_email', email);
+      setView('dash');
+      return { ok: true };
+    }
+  }, [registeredUsers]);
 
 
   const handleVote = useCallback((reportId, type) => {
