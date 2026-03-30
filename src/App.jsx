@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import './index.css';
 import { sanitize, checkRateLimit, canPerformAction, anonymizeReport, isValidCollegeEmail } from './security';
+import { supabase } from './supabaseClient';
 
 // --- CONSTANTS ---
 const CATEGORIES = ['Facilities', 'Harassment', 'Academics', 'Safety', 'Suggestions', 'Other'];
@@ -553,7 +554,7 @@ const AuthPage = memo(({ initialMode = 'login', onAuthSuccess, onBack }) => {
   const [isVerifying, setIsVerifying] = useState(false);
   const [typedCode, setTypedCode] = useState('');
   
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setAuthError('');
     
@@ -562,7 +563,8 @@ const AuthPage = memo(({ initialMode = 'login', onAuthSuccess, onBack }) => {
       return;
     }
     
-    const result = onAuthSuccess(role, email, username || 'ANON_OPERATIVE', mode);
+    const password = e.target.password.value;
+    const result = await onAuthSuccess(role, email, username || 'ANON_OPERATIVE', mode, password);
     if (!result?.ok) {
       setAuthError(result?.error || 'Authentication error.');
       if (result?.needsVerification) setIsVerifying(true);
@@ -1192,83 +1194,156 @@ const App = () => {
   const [view, setView] = useState('landing');
   const [isBooting, setIsBooting] = useState(false);
   const [userRole, setUserRole] = useState('Student');
-  const [reports, setReports] = useState(() => {
-    try {
-      const saved = localStorage.getItem('gabbar_final_v15');
-      return saved ? JSON.parse(saved) : [
-        { id: '1', title: 'Suspicious drone at Night', content: 'Observed near Wing C. Security notified.', category: 'Safety', upvotes: 121, status: 'Under Review', timestamp: Date.now() - 3600000, userId: 'system', author: 'system', comments: [{ id: 'c1', user: 'SilentGhost', text: 'Spotted this near the sports complex too.', time: Date.now() - 1200000 }] },
-        { id: '2', title: 'Library AC Failure', content: 'Zone 4 is non-functional.', category: 'Facilities', upvotes: 45, status: 'Pending', timestamp: Date.now() - 7200000, userId: 'system', author: 'system', comments: [] }
-      ];
-    } catch (e) {
-      console.error("HYDRATION_ERROR: Corrupted intel recovered. Resetting...");
-      return [];
-    }
-  });
-
+  const [reports, setReports] = useState([]);
   const [nextView, setNextView] = useState(null);
   const [nextMode, setNextMode] = useState('login');
   const [userVotes, setUserVotes] = useState({});
   const [winWidth, setWinWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 0);
   const [currentUserEmail, setCurrentUserEmail] = useState('');
-  const [currentUser, setCurrentUser] = useState(() => {
-    const saved = localStorage.getItem('gabbar_user_profile_v7');
-    return saved ? JSON.parse(saved) : { username: 'ANON_OPERATIVE' };
-  });
-
-  const [registeredUsers, setRegisteredUsers] = useState(() => {
-    const saved = localStorage.getItem('gabbar_registered_users_v2');
-    return saved ? JSON.parse(saved) : [
-      { email: 'admin@vvce.ac.in', role: 'Admin', reports: 0, verified: true, password: 'password123' },
-      { email: 'student1@vvce.ac.in', role: 'Student', reports: 2, verified: true, password: 'password123' }
-    ];
-  });
+  const [currentUser, setCurrentUser] = useState({ username: 'ANON_OPERATIVE' });
+  const [session, setSession] = useState(null);
 
   useEffect(() => {
-    localStorage.setItem('gabbar_registered_users_v2', JSON.stringify(registeredUsers));
-  }, [registeredUsers]);
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      if (session) {
+        setUserRole(session.user.user_metadata.role || 'Student');
+        setCurrentUserEmail(session.user.email);
+        setCurrentUser({ username: session.user.user_metadata.username || 'ANON_OPERATIVE' });
+        setView('dash');
+      }
+    });
 
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      if (session) {
+        setUserRole(session.user.user_metadata.role || 'Student');
+        setCurrentUserEmail(session.user.email);
+        setCurrentUser({ username: session.user.user_metadata.username || 'ANON_OPERATIVE' });
+        setView('dash');
+      } else {
+        setView('landing');
+      }
+    });
 
-  useEffect(() => {
-    const checkPath = () => {
-       if (window.location.pathname === '/dev') {
-          if (userRole === 'Admin') setView('dev');
-          else setView('landing');
-       }
-    };
-    checkPath();
-    window.addEventListener('popstate', checkPath);
-    return () => window.removeEventListener('popstate', checkPath);
-  }, [userRole]);
-
-  useEffect(() => {
-    const handleResize = () => setWinWidth(window.innerWidth);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    return () => subscription.unsubscribe();
   }, []);
 
-  useEffect(() => { localStorage.setItem('gabbar_final_v15', JSON.stringify(reports)); }, [reports]);
+  useEffect(() => {
+    const fetchReports = async () => {
+      const { data, error } = await supabase
+        .from('reports')
+        .select('*')
+        .order('timestamp', { ascending: false });
+      
+      if (!error && data) {
+        setReports(data.map(r => ({ ...r, comments: r.comments || [] })));
+      }
+    };
+    if (session) fetchReports();
+  }, [session]);
 
   const handleBootComplete = useCallback(() => {
     setIsBooting(false);
     if (nextView) setView(nextView);
   }, [nextView]);
 
-  const handleStatusChange = useCallback((id, newStatus) => {
+  const handleStatusChange = useCallback(async (id, newStatus) => {
     if (!canPerformAction(userRole, 'manage_status')) {
       alert("UNAUTHORIZED: Elevating credentials required for status management.");
       return;
     }
-    setReports(prev => prev.map(r => r.id === id ? { ...r, status: newStatus } : r));
+    const { error } = await supabase
+      .from('reports')
+      .update({ status: newStatus })
+      .eq('id', id);
+    
+    if (!error) {
+      setReports(prev => prev.map(r => r.id === id ? { ...r, status: newStatus } : r));
+    }
   }, [userRole]);
 
-  const handleDeleteReport = useCallback((id) => {
-    if (!canPerformAction(userRole, 'delete_report')) {
-       // Check if user is deleting their own report or is Admin
-       // For now, allow if Admin or if logic is handled elsewhere.
-       // Based on user requirements, let's keep it simple.
+  const handleDeleteReport = useCallback(async (id) => {
+    const { error } = await supabase
+      .from('reports')
+      .delete()
+      .eq('id', id);
+
+    if (!error) {
+      setReports(prev => prev.filter(r => r.id !== id));
     }
-    setReports(prev => prev.filter(r => r.id !== id));
-  }, [userRole]);
+  }, []);
+
+  const addReport = useCallback(async (e) => {
+    e.preventDefault();
+    if (!canPerformAction(userRole, 'submit_report')) return;
+
+    const newReportRaw = {
+      title: sanitize(e.target.title.value),
+      category: e.target.category.value,
+      content: sanitize(e.target.content.value),
+      author: currentUserEmail,
+      user_id: session?.user?.id,
+      upvotes: 0,
+      status: 'Pending',
+      timestamp: Date.now(),
+      comments: []
+    };
+
+    const { data, error } = await supabase
+      .from('reports')
+      .insert([newReportRaw])
+      .select();
+
+    if (!error && data) {
+      setReports(prev => [data[0], ...prev]);
+    }
+    return !error;
+  }, [userRole, currentUserEmail, session]);
+
+  const handleVote = useCallback(async (reportId, type) => {
+    const currentReport = reports.find(r => r.id === reportId);
+    if (!currentReport) return;
+
+    const currentVote = userVotes[reportId] || 0;
+    let delta = 0;
+    if (type === 1) { 
+      if (currentVote === 1) delta = -1;
+      else if (currentVote === -1) delta = 2;
+      else delta = 1;
+    } else if (type === -1) {
+      if (currentVote === -1) delta = 1;
+      else if (currentVote === 1) delta = -2;
+      else delta = -1;
+    }
+
+    const { error } = await supabase
+      .from('reports')
+      .update({ upvotes: currentReport.upvotes + delta })
+      .eq('id', reportId);
+
+    if (!error) {
+      setUserVotes(prev => ({ ...prev, [reportId]: (currentVote === type ? 0 : type) }));
+      setReports(prev => prev.map(r => r.id === reportId ? { ...r, upvotes: r.upvotes + delta } : r));
+    }
+  }, [userVotes, reports]);
+
+  const handleAddComment = useCallback(async (reportId, text, user) => {
+    const report = reports.find(r => r.id === reportId);
+    if (!report) return;
+
+    const newComment = { id: Date.now().toString(), user, text: sanitize(text), time: Date.now() };
+    const updatedComments = [...(report.comments || []), newComment];
+
+    const { error } = await supabase
+      .from('reports')
+      .update({ comments: updatedComments })
+      .eq('id', reportId);
+
+    if (!error) {
+      setReports(prev => prev.map(r => r.id === reportId ? { ...r, comments: updatedComments } : r));
+    }
+  }, [reports]);
 
 
   const handleUpdateUsername = useCallback((newUsername) => {
@@ -1279,133 +1354,41 @@ const App = () => {
     });
   }, []);
 
-  const handleAuth = useCallback((role, email, username, mode) => {
-    let finalRole = role;
-    if (email.toLowerCase() === 'jeevanh259@gmail.com') {
-      finalRole = 'Admin';
-    }
-
+  const handleAuth = async (role, email, username, mode, password) => {
     if (mode === 'signup') {
-      const existing = registeredUsers.find(u => u.email === email);
-      if (existing) {
-        return { ok: false, error: 'Email already exists in the hub manifest.' };
-      }
-
-      // Simulation: Send request to Google Sheets and simulate email trigger
-      const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz_REPLACE_WITH_YOUR_URL/exec';
-      fetch(GOOGLE_SCRIPT_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, username, timestamp: new Date().toISOString(), type: 'SIGNUP_VERIFICATION' })
-      }).catch(() => {});
-
-      const newUser = { email, role: finalRole, username: username || 'ANON_OPERATIVE', reports: 0, verified: false };
-      setRegisteredUsers(prev => [...prev, newUser]);
-      return { ok: true, needsVerification: true };
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { username, role }
+        }
+      });
+      if (error) return { ok: false, error: error.message };
+      return { ok: true, needsVerification: !data.session };
     }
 
     if (mode === 'login') {
-      const user = registeredUsers.find(u => u.email === email);
-      if (!user) {
-        return { ok: false, error: 'Identity not found. Create a new account.' };
-      }
-      if (!user.verified) {
-        return { ok: false, error: 'Access Denied: Email verification pending.', needsVerification: true };
-      }
-      
-      setUserRole(user.role);
-      setCurrentUserEmail(email);
-      setCurrentUser({ username: user.username });
-      localStorage.setItem('gabbar_logged_in_email', email);
-      setView('dash');
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+      if (error) return { ok: false, error: error.message };
       return { ok: true };
     }
-    
+
     if (mode === 'verify') {
-      setRegisteredUsers(prev => prev.map(u => u.email === email ? { ...u, verified: true } : u));
-      setUserRole(finalRole);
-      setCurrentUserEmail(email);
-      setCurrentUser({ username: username });
-      localStorage.setItem('gabbar_logged_in_email', email);
-      setView('dash');
-      return { ok: true };
-    }
-  }, [registeredUsers]);
-
-
-  const handleVote = useCallback((reportId, type) => {
-    const limit = checkRateLimit(`USER_${userRole}`, 'vote');
-    if (!limit.ok) return; // Silent discard for rapid votes
-
-    setUserVotes(prev => {
-      const current = prev[reportId] || 0;
-      let next = current;
-      if (type === 1) next = (current === 1) ? 0 : 1;
-      else if (type === -1) next = (current === -1) ? 0 : -1;
-      return { ...prev, [reportId]: next };
-    });
-    setReports(prev => prev.map(r => {
-      if (r.id === reportId) {
-        const currentVote = userVotes[reportId] || 0;
-        let delta = 0;
-        if (type === 1) { // Upvote
-          if (currentVote === 1) delta = -1; // Unvote
-          else if (currentVote === -1) delta = 2; // Change downvote to upvote
-          else delta = 1; // New upvote
-        } else if (type === -1) { // Downvote
-          if (currentVote === -1) delta = 1; // Unvote
-          else if (currentVote === 1) delta = -2; // Change upvote to downvote
-          else delta = -1; // New downvote
-        }
-        return { ...r, upvotes: r.upvotes + delta };
+      // Supabase handles verification via email links, but for simulation 
+      // if you have a manual code on backend you'd call it here.
+      // For standard Supabase, we'll just check session.
+      const { data } = await supabase.auth.getSession();
+      if (data.session) {
+        setView('dash');
+        return { ok: true };
       }
-      return r;
-    }));
-  }, [userVotes, userRole]);
-
-  const addReport = useCallback((e) => {
-    e.preventDefault();
-    
-    if (!canPerformAction(userRole, 'submit_report')) {
-      alert("UNAUTHORIZED: Your operative role lacks submission credentials.");
-      return;
+      return { ok: false, error: 'Verification incomplete.' };
     }
+  };
 
-    const limit = checkRateLimit(`USER_${userRole}`, 'report');
-    if (!limit.ok) {
-      alert(`SYSTEM_HALT: Rate limiting active. Wait ${limit.remaining}s.`);
-      return;
-    }
-
-    const newReportRaw = {
-      id: Date.now().toString(),
-      title: sanitize(e.target.title.value),
-      category: e.target.category.value,
-      content: sanitize(e.target.content.value),
-      author: currentUserEmail,
-      userId: currentUserEmail,
-      upvotes: 0,
-      status: 'Pending',
-      timestamp: Date.now(),
-      comments: []
-    };
-
-    setReports(prev => [anonymizeReport(newReportRaw, currentUser.username), ...prev]);
-  }, [userRole, currentUser]);
-
-
-  const handleAddComment = useCallback((reportId, text, user) => {
-    setReports(prev => prev.map(r => {
-      if (r.id === reportId) {
-        return {
-          ...r,
-          comments: [...(r.comments || []), { id: Date.now().toString(), user, text: sanitize(text), time: Date.now() }]
-        };
-      }
-      return r;
-    }));
-  }, []);
 
   const startBoot = (target, mode = 'login') => {
     setNextView(target);
