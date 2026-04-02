@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Radio, Shield, Activity, FileText, CheckCircle, ChevronUp, ChevronDown, Lock, Loader2, Edit3, ArrowRight, Zap, MessageCircle, Send, AlertTriangle, Menu, X, Bell, User, LogOut, TrendingUp, Plus } from 'lucide-react';
 import './index.css';
 import { sanitize, isValidCollegeEmail, checkRateLimit, canPerformAction, anonymizeReport } from './security';
+import { supabase } from './supabase';
 
 // --- CONSTANTS ---
 const CATEGORIES = ['Facilities', 'Harassment', 'Academics', 'Safety', 'Suggestions', 'Other'];
@@ -225,7 +226,7 @@ const LandingPage = ({ onJoin }) => {
             <h2 className="cta-h2-v7">Ready to secure your campus?</h2>
             <p className="cta-p-v7">Join the intelligence hub and help build a safer, more transparent environment today.</p>
             <button className="btn-v7 primary large" onClick={() => onJoin('auth', 'signup')}>INITIALIZE HUB CONNECTION</button>
-            <div className="cta-sub-v7">TRUSTED BY 500+ CAMPUS OPERATIVES</div>
+            <div className="cta-sub-v7">STRENGTHENED BY 280+ SECURE SYSTEM COMMITS</div>
          </motion.div>
       </section>
 
@@ -341,7 +342,8 @@ const SidePanel = memo(({ reports, topReports }) => (
       <div className="v-stack" style={{ gap: '12px' }}>
         {[
           { label: 'Active Channels', value: '01', color: 'var(--primary)' },
-          { label: 'Total Intel Logs', value: (reports || []).length, color: 'var(--accent-purple)' },
+          { label: 'Total Intel Logs', value: (reports || []).length.toString().padStart(2, '0'), color: 'var(--accent-purple)' },
+          { label: 'Secure Commits', value: '280+', color: 'var(--primary)' },
           { label: 'Platform Status', value: 'Secure', color: 'var(--accent-emerald)' }
         ].map((m, i) => (
           <div key={i} className="flex-v6" style={{ width: '100%', justifyContent: 'space-between', padding: '16px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)', borderRadius: '12px' }}>
@@ -378,7 +380,7 @@ const DevPanel = memo(({ reports, users, onDelete, onStatusChange, onBack }) => 
                  <tr>
                     <th className="admin-th-v15">OPERATIVE_EMAIL</th>
                     <th className="admin-th-v15">IDENTITY_RANK</th>
-                    <th className="admin-th-v15">INTELLIGENCE_VOL</th>
+                    <th className="admin-th-v15">CODENAME</th>
                  </tr>
               </thead>
               <tbody>
@@ -386,7 +388,7 @@ const DevPanel = memo(({ reports, users, onDelete, onStatusChange, onBack }) => 
                    <tr key={i} className="admin-row-v15">
                       <td className="admin-td-v15" style={{ color: '#fff' }}>{u.email}</td>
                       <td className="admin-td-v15"><span className="badge-v15 badge-admin">{u.role}</span></td>
-                      <td className="admin-td-v15">{u.reports} LOGS</td>
+                      <td className="admin-td-v15">{u.username.toUpperCase()}</td>
                    </tr>
                  ))}
               </tbody>
@@ -675,7 +677,7 @@ const Dashboard = memo(({ reports, role, onLogout, onVote, onAddReport, onAddCom
   const isMobile = winWidth <= 1024;
 
   const userReports = useMemo(() => {
-    return reports.filter(r => r.userId === currentUserEmail || r.author === currentUserEmail);
+    return reports.filter(r => r.user_id === currentUserEmail || r.author_email === currentUserEmail);
   }, [reports, currentUserEmail]);
 
 
@@ -1017,7 +1019,7 @@ const ReportCard = memo(({ report, onVote, role, activeVote, onAddComment, onDel
 
   const isTrending = report.upvotes > 70;
   const isPriority = report.category === 'Safety' || report.category === 'Harassment';
-  const isOwner = (report.userId && report.userId === currentUserEmail) || (report.author && report.author === currentUserEmail); 
+  const isOwner = (report.user_id && report.author_email === currentUserEmail) || (report.author_email && report.author_email === currentUserEmail); 
 
   const submitComment = (e) => {
     e.preventDefault();
@@ -1190,34 +1192,99 @@ const App = () => {
   const [view, setView] = useState('landing');
   const [isBooting, setIsBooting] = useState(false);
   const [userRole, setUserRole] = useState('Student');
-  const [reports, setReports] = useState(() => {
-    const saved = localStorage.getItem('gabbar_hub_v19');
-    return saved ? JSON.parse(saved) : [
-      { id: '1', title: 'Suspicious drone at Night', content: 'Observed near Wing C. Security notified.', category: 'Safety', upvotes: 121, status: 'Under Review', timestamp: Date.now() - 3600000, userId: 'system', author: 'system', comments: [] },
-      { id: '2', title: 'Library AC Failure', content: 'Zone 4 is non-functional.', category: 'Facilities', upvotes: 45, status: 'Pending', timestamp: Date.now() - 7200000, userId: 'system', author: 'system', comments: [] }
-    ];
-  });
-
+  const [reports, setReports] = useState([]);
   const [nextView, setNextView] = useState(null);
   const [nextMode, setNextMode] = useState('login');
   const [userVotes, setUserVotes] = useState({});
   const [winWidth, setWinWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 0);
-  const [currentUserEmail, setCurrentUserEmail] = useState(localStorage.getItem('gabbar_logged_in_email') || '');
-  const [currentUser, setCurrentUser] = useState(() => {
-    const saved = localStorage.getItem('gabbar_user_profile_v19');
-    return saved ? JSON.parse(saved) : { username: 'ANON_OPERATIVE' };
-  });
+  const [currentUserEmail, setCurrentUserEmail] = useState('');
+  const [currentUser, setCurrentUser] = useState({ username: 'ANON_OPERATIVE' });
+  const [registeredUsers, setRegisteredUsers] = useState([]);
+  const [session, setSession] = useState(null);
 
-  const [registeredUsers, setRegisteredUsers] = useState(() => {
-    const saved = localStorage.getItem('gabbar_reg_v19');
-    return saved ? JSON.parse(saved) : [
-      { email: 'admin@vvce.ac.in', role: 'Admin', reports: 0, verified: true }
-    ];
-  });
+  // --- INITIALIZATION ---
+  useEffect(() => {
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      if (session) {
+        setCurrentUserEmail(session.user.email);
+        fetchProfile(session.user.id);
+        setView('dash');
+      }
+    });
 
-  useEffect(() => { localStorage.setItem('gabbar_hub_v19', JSON.stringify(reports)); }, [reports]);
-  useEffect(() => { localStorage.setItem('gabbar_reg_v19', JSON.stringify(registeredUsers)); }, [registeredUsers]);
-  useEffect(() => { localStorage.setItem('gabbar_user_profile_v19', JSON.stringify(currentUser)); }, [currentUser]);
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      if (session) {
+        setCurrentUserEmail(session.user.email);
+        fetchProfile(session.user.id);
+        setView('dash');
+      } else {
+        setView('landing');
+        setCurrentUserEmail('');
+        setCurrentUser({ username: 'ANON_OPERATIVE' });
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    fetchReports();
+    // Subscribe to real-time updates for reports
+    const channel = supabase
+      .channel('reports_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'reports' }, () => {
+        fetchReports();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  const fetchReports = async () => {
+    const { data, error } = await supabase
+      .from('reports')
+      .select('*')
+      .order('timestamp', { ascending: false });
+    
+    if (error) {
+      console.error('Error fetching reports:', error);
+    } else {
+      setReports(data || []);
+    }
+  };
+
+  const fetchProfile = async (userId) => {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single();
+    
+    if (data) {
+      setCurrentUser({ username: data.username });
+      setUserRole(data.role);
+    }
+  };
+
+  const fetchAllUsers = async () => {
+    // Only admins should be able to do this, but for simplicity:
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*');
+    if (data) setRegisteredUsers(data);
+  };
+
+  useEffect(() => {
+    if (userRole === 'Admin' && view === 'dev') {
+      fetchAllUsers();
+    }
+  }, [userRole, view]);
 
   useEffect(() => {
     const handleResize = () => setWinWidth(window.innerWidth);
@@ -1230,110 +1297,136 @@ const App = () => {
     if (nextView) setView(nextView);
   }, [nextView]);
 
-  const handleStatusChange = useCallback((id, newStatus) => {
+  const handleStatusChange = useCallback(async (id, newStatus) => {
     if (!canPerformAction(userRole, 'manage_status')) return;
-    setReports(prev => prev.map(r => r.id === id ? { ...r, status: newStatus } : r));
+    const { error } = await supabase
+      .from('reports')
+      .update({ status: newStatus })
+      .eq('id', id);
+    
+    if (error) console.error('Error updating status:', error);
   }, [userRole]);
 
-  const handleDeleteReport = useCallback((id) => {
-    setReports(prev => prev.filter(r => r.id !== id));
+  const handleDeleteReport = useCallback(async (id) => {
+    const { error } = await supabase
+      .from('reports')
+      .delete()
+      .eq('id', id);
+    
+    if (error) console.error('Error deleting report:', error);
   }, []);
 
-  const addReport = useCallback((e) => {
+  const addReport = useCallback(async (e) => {
     e.preventDefault();
     if (!canPerformAction(userRole, 'submit_report')) return;
 
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+
     const newReport = {
-      id: Date.now().toString(),
       title: sanitize(e.target.title.value),
       category: e.target.category.value,
       content: sanitize(e.target.content.value),
-      author: currentUserEmail,
-      userId: currentUserEmail,
+      user_id: session.user.id,
+      author_email: session.user.email,
+      author_name: currentUser.username,
       upvotes: 0,
       status: 'Pending',
-      timestamp: Date.now(),
+      timestamp: new Date().toISOString(),
       comments: []
     };
 
-    setReports(prev => [anonymizeReport(newReport, currentUser.username), ...prev]);
-  }, [userRole, currentUserEmail, currentUser]);
+    const { error } = await supabase
+      .from('reports')
+      .insert([newReport]);
+    
+    if (error) console.error('Error adding report:', error);
+  }, [userRole, currentUser.username]);
 
-  const handleVote = useCallback((reportId, type) => {
-    setUserVotes(prev => {
-      const current = prev[reportId] || 0;
-      return { ...prev, [reportId]: (current === type ? 0 : type) };
-    });
-    setReports(prev => prev.map(r => {
-      if (r.id === reportId) {
-        const currentVote = userVotes[reportId] || 0;
-        let delta = 0;
-        if (type === 1) delta = (currentVote === 1) ? -1 : (currentVote === -1 ? 2 : 1);
-        else if (type === -1) delta = (currentVote === -1) ? 1 : (currentVote === 1 ? -2 : -1);
-        return { ...r, upvotes: r.upvotes + delta };
+  const handleVote = useCallback(async (reportId, type) => {
+    // For simplicity, we'll just update the upvotes count.
+    // In a production app, you'd want a separate votes table to prevent double voting.
+    const report = reports.find(r => r.id === reportId);
+    if (!report) return;
+
+    const currentVote = userVotes[reportId] || 0;
+    let delta = 0;
+    if (type === 1) delta = (currentVote === 1) ? -1 : (currentVote === -1 ? 2 : 1);
+    else if (type === -1) delta = (currentVote === -1) ? 1 : (currentVote === 1 ? -2 : -1);
+
+    const { error } = await supabase
+      .from('reports')
+      .update({ upvotes: report.upvotes + delta })
+      .eq('id', reportId);
+
+    if (!error) {
+      setUserVotes(prev => ({ ...prev, [reportId]: (currentVote === type ? 0 : type) }));
+    }
+  }, [reports, userVotes]);
+
+  const handleAddComment = useCallback(async (reportId, text, user) => {
+    const report = reports.find(r => r.id === reportId);
+    if (!report) return;
+
+    const newComment = { id: Date.now().toString(), user, text: sanitize(text), time: Date.now() };
+    const updatedComments = [...(report.comments || []), newComment];
+
+    const { error } = await supabase
+      .from('reports')
+      .update({ comments: updatedComments })
+      .eq('id', reportId);
+
+    if (error) console.error('Error adding comment:', error);
+  }, [reports]);
+
+  const handleUpdateUsername = useCallback(async (newUsername) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ username: newUsername })
+        .eq('id', user.id);
+      
+      if (!error) {
+        setCurrentUser(prev => ({ ...prev, username: newUsername }));
+      } else {
+        console.error('Error updating username:', error);
       }
-      return r;
-    }));
-  }, [userVotes]);
-
-  const handleAddComment = useCallback((reportId, text, user) => {
-    setReports(prev => prev.map(r => r.id === reportId ? { 
-      ...r, 
-      comments: [...(r.comments || []), { id: Date.now().toString(), user, text: sanitize(text), time: Date.now() }] 
-    } : r));
+    }
   }, []);
 
-  const handleUpdateUsername = useCallback((newUsername) => {
-    setCurrentUser(prev => ({ ...prev, username: newUsername }));
-  }, []);
-
-  const handleAuth = (role, email, username, mode, password) => {
+  const handleAuth = async (role, email, username, mode, password) => {
     if (mode === 'signup') {
-      const existing = registeredUsers.find(u => u.email === email);
-      if (existing) return { ok: false, error: 'Identity already recognized in manifest.' };
-      
-      const newUser = { email, role, username, verified: false };
-      setRegisteredUsers(prev => [...prev, newUser]);
-      
-      // OPTIONAL: Google Sheets Logging
-      fetch('YOUR_GOOGLE_SCRIPT_URL', {
-        method: 'POST',
-        mode: 'no-cors',
-        body: JSON.stringify({ email, username, type: 'SIGNUP' })
-      }).catch(() => {});
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+      });
 
-      return { ok: true, needsVerification: true };
+      if (error) return { ok: false, error: error.message };
+
+      if (data.user) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert([{ id: data.user.id, email, username, role }]);
+        
+        if (profileError) console.error('Profile creation error:', profileError);
+        return { ok: true, needsVerification: true };
+      }
     }
 
     if (mode === 'login') {
-      const user = registeredUsers.find(u => u.email === email);
-      if (!user) return { ok: false, error: 'Access Denied: Operative not found.' };
-      if (!user.verified) return { ok: false, error: 'Security Lock: Verification required.', needsVerification: true };
-      
-      setUserRole(user.role);
-      setCurrentUserEmail(email);
-      setCurrentUser({ username: user.username });
-      localStorage.setItem('gabbar_logged_in_email', email);
-      setView('dash');
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) return { ok: false, error: error.message === 'Invalid login credentials' ? 'Access Denied: Operative not found or invalid key.' : error.message };
       return { ok: true };
     }
 
-    if (mode === 'verify') {
-      setRegisteredUsers(prev => prev.map(u => u.email === email ? { ...u, verified: true } : u));
-      setUserRole(role);
-      setCurrentUserEmail(email);
-      setCurrentUser({ username: username });
-      localStorage.setItem('gabbar_logged_in_email', email);
-      setView('dash');
-      return { ok: true };
-    }
+    return { ok: true };
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('gabbar_logged_in_email');
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
     setView('landing');
   };
-
 
   const startBoot = (target, mode = 'login') => {
     setNextView(target);
