@@ -1410,6 +1410,8 @@ const App = () => {
           password,
         });
 
+        console.log("AUTH_DIAGNOSTICS:", { data, error });
+
         if (error) {
           // Task 4: User already exists check
           if (error.message.includes('User already registered') || error.message.includes('already exists')) {

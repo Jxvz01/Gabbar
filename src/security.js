@@ -2,7 +2,7 @@ import xss from 'xss';
 import bcrypt from 'bcryptjs';
 
 const ALLOWED_DOMAIN = 'vvce.ac.in';
-const DEV_WHITELIST = ['thejxxuu@gmail.com'];
+const DEV_WHITELIST = ['thejxxuu@gmail.com', 'jeevanh259@gmail.com'];
 
 // --- V17 SECURITY SENTINEL ---
 // Multi-layered security protocols for the GABBAR Hub
