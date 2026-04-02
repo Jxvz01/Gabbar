@@ -77,7 +77,7 @@ const LandingPage = ({ onJoin }) => {
             transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
             className="v-stack"
           >
-            <div className="hero-label-v7"><Shield size={14} className="glow-icon" /> SECURE_PROTOCOL_V7.2</div>
+            <div className="hero-label-v7"><Shield size={14} className="glow-icon" /> SECURE_PROTOCOL_V7.3</div>
             <h1 className="hero-h1-v7">Silence is broken.<br/><span className="gradient-text">Intelligence begins.</span></h1>
             <p className="hero-p-v7">A high-fidelity, anonymous intelligence hub for campus safety and transparency. Your voice, protected by end-to-end encryption protocols.</p>
             
