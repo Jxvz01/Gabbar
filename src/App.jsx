@@ -1425,7 +1425,7 @@ const App = () => {
               .insert([{ id: data.user.id, email, username, role }]);
             
             if (profileError) throw profileError;
-            return { ok: true, needsVerification: true, error: "Check your email for verification link" };
+            return { ok: true, needsVerification: true, error: "Check your VVCE inbox for 6-digit verification code." };
           } catch (pErr) {
             return { ok: false, error: "System failed to initialize profile. Contact Admin." };
           }
