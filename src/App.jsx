@@ -226,7 +226,7 @@ const LandingPage = ({ onJoin }) => {
             <h2 className="cta-h2-v7">Ready to secure your campus?</h2>
             <p className="cta-p-v7">Join the intelligence hub and help build a safer, more transparent environment today.</p>
             <button className="btn-v7 primary large" onClick={() => onJoin('auth', 'signup')}>INITIALIZE HUB CONNECTION</button>
-            <div className="cta-sub-v7">STRENGTHENED BY 280+ SECURE SYSTEM COMMITS</div>
+            <div className="cta-sub-v7">STRENGTHENED BY 335+ SECURE SYSTEM COMMITS</div>
          </motion.div>
       </section>
 
@@ -343,7 +343,7 @@ const SidePanel = memo(({ reports, topReports }) => (
         {[
           { label: 'Active Channels', value: '01', color: 'var(--primary)' },
           { label: 'Total Intel Logs', value: (reports || []).length.toString().padStart(2, '0'), color: 'var(--accent-purple)' },
-          { label: 'Secure Commits', value: '280+', color: 'var(--primary)' },
+          { label: 'Secure Commits', value: '335+', color: 'var(--primary)' },
           { label: 'Platform Status', value: 'Secure', color: 'var(--accent-emerald)' }
         ].map((m, i) => (
           <div key={i} className="flex-v6" style={{ width: '100%', justifyContent: 'space-between', padding: '16px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)', borderRadius: '12px' }}>
@@ -562,16 +562,17 @@ const AuthPage = memo(({ initialMode = 'login', onAuthSuccess, onBack }) => {
     }
     
     const password = e.target.password.value;
-    const result = onAuthSuccess(role, email, username || 'ANON_OPERATIVE', mode, password);
-    if (!result?.ok) {
-      setAuthError(result?.error || 'Authentication error.');
-      if (result?.needsVerification) setIsVerifying(true);
-      return;
-    }
+    onAuthSuccess(role, email, username || 'ANON_OPERATIVE', mode, password).then(result => {
+      if (!result?.ok) {
+        setAuthError(result?.error || 'Verification Failed: Check Operative Key.');
+        if (result?.needsVerification) setIsVerifying(true);
+        return;
+      }
 
-    if (result.needsVerification) {
-      setIsVerifying(true);
-    }
+      if (result.needsVerification) {
+        setIsVerifying(true);
+      }
+    });
   };
 
   const handleVerify = (e) => {
@@ -1396,21 +1397,40 @@ const App = () => {
   }, []);
 
   const handleAuth = async (role, email, username, mode, password) => {
+    // Task 5: Strict domain check
+    if (!isValidCollegeEmail(email)) {
+      return { ok: false, error: "Access Denied: Only VVCE emails allowed (@vvce.ac.in)" };
+    }
+
     if (mode === 'signup') {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-      });
+      try {
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+        });
 
-      if (error) return { ok: false, error: error.message };
+        if (error) {
+          // Task 4: User already exists check
+          if (error.message.includes('User already registered') || error.message.includes('already exists')) {
+             return { ok: false, error: "The account already exists. Please login." };
+          }
+          return { ok: false, error: error.message };
+        }
 
-      if (data.user) {
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert([{ id: data.user.id, email, username, role }]);
-        
-        if (profileError) console.error('Profile creation error:', profileError);
-        return { ok: true, needsVerification: true };
+        if (data.user) {
+          try {
+            const { error: profileError } = await supabase
+              .from('profiles')
+              .insert([{ id: data.user.id, email, username, role }]);
+            
+            if (profileError) throw profileError;
+            return { ok: true, needsVerification: true, error: "Check your email for verification link" };
+          } catch (pErr) {
+            return { ok: false, error: "System failed to initialize profile. Contact Admin." };
+          }
+        }
+      } catch (globalErr) {
+        return { ok: false, error: globalErr.message };
       }
     }
 
