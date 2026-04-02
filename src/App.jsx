@@ -577,11 +577,12 @@ const AuthPage = memo(({ initialMode = 'login', onAuthSuccess, onBack }) => {
 
   const handleVerify = (e) => {
     e.preventDefault();
-    if (typedCode === 'VVCE-2026') {
-      onAuthSuccess(role, email, username || 'ANON_OPERATIVE', 'verify');
-    } else {
-      setAuthError('INVALID_CODE: Verification mismatch.');
-    }
+    setAuthError('');
+    onAuthSuccess(role, email, username || 'ANON_OPERATIVE', 'verify', null, typedCode).then(result => {
+      if (!result?.ok) {
+        setAuthError(result?.error || 'INVALID_CODE: Verification mismatch.');
+      }
+    });
   };
 
   return (
@@ -1396,7 +1397,7 @@ const App = () => {
     }
   }, []);
 
-  const handleAuth = async (role, email, username, mode, password) => {
+  const handleAuth = async (role, email, username, mode, password, code) => {
     // Task 5: Strict domain check
     if (!isValidCollegeEmail(email)) {
       return { ok: false, error: "Access Denied: Only VVCE emails allowed (@vvce.ac.in)" };
@@ -1432,6 +1433,18 @@ const App = () => {
       } catch (globalErr) {
         return { ok: false, error: globalErr.message };
       }
+    }
+
+    if (mode === 'verify') {
+      const { data, error } = await supabase.auth.verifyOtp({ 
+        email, 
+        token: code, 
+        type: 'signup' 
+      });
+      if (error) {
+        return { ok: false, error: "INVALID_CODE: Digital signature mismatch or expired." };
+      }
+      return { ok: true };
     }
 
     if (mode === 'login') {
