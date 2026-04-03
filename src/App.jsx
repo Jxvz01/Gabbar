@@ -364,81 +364,181 @@ const SidePanel = memo(({ reports, topReports }) => (
   </aside>
 ));
 
-const DevPanel = memo(({ reports, users, onDelete, onStatusChange, onBack }) => (
-  <div className="dev-panel-v28 page-transition" style={{ padding: '40px', background: '#030712', minHeight: '100vh' }}>
-    <div className="flex-v6" style={{ justifyContent: 'space-between', marginBottom: '48px', borderBottom: '1px solid #1f2937', paddingBottom: '32px' }}>
-       <h1 style={{ fontSize: '32px', fontWeight: '900', color: '#fff' }}>/DEV_TERMINAL</h1>
-       <button onClick={onBack} className="btn-v15 resolve">RETURN_TO_COMMAND</button>
+const DevPanel = memo(({ reports, users, onDelete, onStatusChange, onBack, onSendNotification, onUpdateBanStatus }) => {
+  const [activeSubTab, setActiveSubTab] = useState('reports');
+  const [notifForm, setNotifForm] = useState({ title: '', content: '', target: 'Everyone' });
+  const [isSending, setIsSending] = useState(false);
+
+  const handleBroadcast = async (e) => {
+    e.preventDefault();
+    setIsSending(true);
+    const targetUserId = notifForm.target === 'Everyone' ? null : notifForm.target;
+    await onSendNotification(notifForm.title, notifForm.content, targetUserId);
+    setNotifForm({ title: '', content: '', target: 'Everyone' });
+    setIsSending(false);
+    alert("BROADCAST_SENT: Message transmitted across all encrypted nodes.");
+  };
+
+  return (
+    <div className="dev-panel-v28 page-transition" style={{ padding: '40px', background: '#030712', minHeight: '100vh' }}>
+      <div className="flex-v6" style={{ justifyContent: 'space-between', marginBottom: '40px', borderBottom: '1px solid #1f2937', paddingBottom: '24px' }}>
+         <div className="v-stack" style={{ alignItems: 'flex-start', gap: '4px' }}>
+            <h1 style={{ fontSize: '28px', fontWeight: '900', color: '#fff', letterSpacing: '-1px' }}>/DEV_CMD_CENTER</h1>
+            <p style={{ fontSize: '11px', color: '#10b981', fontWeight: '800', letterSpacing: '1px' }}>OPERATIVE_RANK: ROOT_ADMIN</p>
+         </div>
+         <button onClick={onBack} className="dev-btn" style={{ width: 'auto', padding: '12px 24px', margin: 0 }}>← EXIT_ROOT</button>
+      </div>
+
+      <div className="flex-v6" style={{ justifyContent: 'flex-start', gap: '16px', marginBottom: '32px' }}>
+        {['reports', 'users', 'broadcast'].map(tab => (
+          <button 
+            key={tab}
+            onClick={() => setActiveSubTab(tab)}
+            style={{ 
+              background: activeSubTab === tab ? '#10b981' : 'rgba(255,255,255,0.02)', 
+              color: activeSubTab === tab ? '#000' : '#fff',
+              border: '1px solid ' + (activeSubTab === tab ? '#10b981' : '#1f2937'),
+              padding: '10px 20px', borderRadius: '4px', fontSize: '10px', fontWeight: '800', letterSpacing: '1px', textTransform: 'uppercase', cursor: 'pointer'
+            }}
+          >
+            {tab}
+          </button>
+        ))}
+      </div>
+
+      {activeSubTab === 'reports' && (
+        <div className="admin-view-v15">
+          <h2 className="dev-h2" style={{ fontSize: '20px', marginBottom: '24px' }}>LOGGED_INTELLIGENCE</h2>
+          <table className="admin-table-v15" style={{ display: 'table' }}>
+            <thead>
+              <tr>
+                <th className="admin-th-v15">SUBJECT</th>
+                <th className="admin-th-v15">CATEGORY</th>
+                <th className="admin-th-v15">STATUS_PROTOCOLS</th>
+                <th className="admin-th-v15">COMMANDS</th>
+              </tr>
+            </thead>
+            <tbody>
+              {reports.map((r) => (
+                <tr key={r.id} className="admin-row-v15">
+                  <td className="admin-td-v15">
+                     <div style={{ fontWeight: '800', color: '#fff' }}>{r.title}</div>
+                     <div style={{ fontSize: '10px', color: '#6b7280', marginTop: '4px' }}>LOG_{r.id.slice(0,8)}</div>
+                  </td>
+                  <td className="admin-td-v15"><span className={`badge-v7 border-${r.category}`}>{r.category}</span></td>
+                  <td className="admin-td-v15">
+                    <select 
+                      value={r.status} 
+                      onChange={(e) => onStatusChange(r.id, e.target.value)}
+                      className="btn-admin-v15"
+                      style={{ background: 'transparent' }}
+                    >
+                      {['Pending', 'Under Review', 'Resolved'].map(s => <option key={s} value={s}>{s.toUpperCase()}</option>)}
+                    </select>
+                  </td>
+                  <td className="admin-td-v15">
+                    <button onClick={() => onDelete && onDelete(r.id)} className="btn-admin-v15" style={{ color: '#ef4444', borderColor: '#ef444422' }}>PURGE_LOG</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {activeSubTab === 'users' && (
+        <div className="admin-view-v15">
+          <h2 className="dev-h2" style={{ fontSize: '20px', marginBottom: '24px' }}>USER_MANIFEST</h2>
+          <table className="admin-table-v15" style={{ display: 'table' }}>
+            <thead>
+              <tr>
+                <th className="admin-th-v15">OPERATIVE_USERNAME</th>
+                <th className="admin-th-v15">EMAIL</th>
+                <th className="admin-th-v15">RANK</th>
+                <th className="admin-th-v15">IDENTITY_STATUS</th>
+                <th className="admin-th-v15">COMMANDS</th>
+              </tr>
+            </thead>
+            <tbody>
+              {users.map((u) => (
+                <tr key={u.id} className="admin-row-v15">
+                  <td className="admin-td-v15" style={{ fontWeight: '800', color: '#fff' }}>{u.username}</td>
+                  <td className="admin-td-v15">{u.email}</td>
+                  <td className="admin-td-v15">{u.role}</td>
+                  <td className="admin-td-v15">
+                    <span className={`badge-v15 ${u.is_banned ? 'badge-critical' : 'badge-admin'}`}>
+                      {u.is_banned ? 'BANNED' : 'ACTIVE'}
+                    </span>
+                  </td>
+                  <td className="admin-td-v15">
+                    <button 
+                      onClick={() => onUpdateBanStatus(u.id, !u.is_banned)}
+                      className="btn-admin-v15" 
+                      style={{ color: u.is_banned ? '#10b981' : '#ef4444' }}
+                    >
+                      {u.is_banned ? 'ENABLE_ACCESS' : 'SUSPEND_OPERATIVE'}
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {activeSubTab === 'broadcast' && (
+        <div className="admin-view-v15" style={{ maxWidth: '600px', margin: '0 auto' }}>
+          <h2 className="dev-h2" style={{ fontSize: '20px', marginBottom: '8px' }}>UPLINK_BROADCAST</h2>
+          <p className="dev-p" style={{ marginBottom: '32px' }}>Transmit system-wide or targeted messages.</p>
+          
+          <form onSubmit={handleBroadcast} className="v-stack" style={{ gap: '24px', alignItems: 'stretch' }}>
+            <div className="input-field-v15">
+              <label>MESSAGE_TITLE</label>
+              <input 
+                className="input-v9"
+                value={notifForm.title}
+                onChange={e => setNotifForm({...notifForm, title: e.target.value})}
+                placeholder="Alert Level: Critical"
+                required
+                style={{ marginBottom: 0 }}
+              />
+            </div>
+            
+            <div className="input-field-v15">
+              <label>TARGET_OPERATIVE</label>
+              <select 
+                value={notifForm.target}
+                onChange={e => setNotifForm({...notifForm, target: e.target.value})}
+                className="input-v9 select-v9" 
+                style={{ marginBottom: 0 }}
+              >
+                <option value="Everyone">GLOBAL_BROADCAST (EVERYONE)</option>
+                {users.map(u => <option key={u.id} value={u.id}>{u.username} ({u.email})</option>)}
+              </select>
+            </div>
+
+            <div className="input-field-v15">
+              <label>CONTENT_PAYLOAD</label>
+              <textarea 
+                className="input-v9"
+                value={notifForm.content}
+                onChange={e => setNotifForm({...notifForm, content: e.target.value})}
+                rows="4" 
+                placeholder="Type the message content..."
+                required
+                style={{ resize: 'none', marginBottom: 0 }}
+              ></textarea>
+            </div>
+
+            <button type="submit" disabled={isSending} className="dev-btn">
+              {isSending ? 'TRANSMITTING...' : 'INITIALIZE_SIGNAL_BURST'}
+            </button>
+          </form>
+        </div>
+      )}
     </div>
-
-    <div className="v-stack" style={{ gap: '64px', alignItems: 'stretch' }}>
-       <section>
-          <h2 style={{ fontSize: '12px', fontWeight: '800', color: 'var(--primary)', marginBottom: '32px', letterSpacing: '2px' }}>[USER_MANIFEST]</h2>
-          <div style={{ overflowX: 'auto' }}>
-            <table className="admin-table-v15">
-              <thead>
-                 <tr>
-                    <th className="admin-th-v15">OPERATIVE_EMAIL</th>
-                    <th className="admin-th-v15">IDENTITY_RANK</th>
-                    <th className="admin-th-v15">CODENAME</th>
-                 </tr>
-              </thead>
-              <tbody>
-                 {users.map((u, i) => (
-                   <tr key={i} className="admin-row-v15">
-                      <td className="admin-td-v15" style={{ color: '#fff' }}>{u.email}</td>
-                      <td className="admin-td-v15"><span className="badge-v15 badge-admin">{u.role}</span></td>
-                      <td className="admin-td-v15">{u.username.toUpperCase()}</td>
-                   </tr>
-                 ))}
-              </tbody>
-            </table>
-          </div>
-       </section>
-
-       <section>
-          <h2 style={{ fontSize: '12px', fontWeight: '800', color: 'var(--accent-purple)', marginBottom: '32px', letterSpacing: '2px' }}>[INTEL_LEDGER]</h2>
-          <div style={{ overflowX: 'auto' }}>
-            <table className="admin-table-v15">
-              <thead>
-                 <tr>
-                    <th className="admin-th-v15">REPORT_SUBJECT</th>
-                    <th className="admin-th-v15">SECTOR</th>
-                    <th className="admin-th-v15">STATUS_PROTOCOLS</th>
-                    <th className="admin-th-v15">COMMANDS</th>
-                 </tr>
-              </thead>
-              <tbody>
-                 {reports.map((r) => (
-                   <tr key={r.id} className="admin-row-v15">
-                      <td className="admin-td-v15">
-                         <div style={{ fontWeight: '800', color: '#fff' }}>{r.title}</div>
-                         <div style={{ fontSize: '10px', color: '#6b7280', marginTop: '4px' }}>LOG_{r.id}</div>
-                      </td>
-                      <td className="admin-td-v15"><span className={`badge-v7 border-${r.category}`}>{r.category}</span></td>
-                      <td className="admin-td-v15">
-                         <select 
-                           value={r.status} 
-                           onChange={(e) => onStatusChange(r.id, e.target.value)}
-                           className="select-v4" 
-                           style={{ width: '130px', background: 'transparent' }}
-                         >
-                            {STATUSES.map(s => <option key={s} value={s}>{s.toUpperCase()}</option>)}
-                         </select>
-                      </td>
-                      <td className="admin-td-v15">
-                         <button onClick={() => onDelete && onDelete(r.id)} className="btn-admin-v15" style={{ color: '#ef4444' }}>DELETE_LOG</button>
-                      </td>
-
-                   </tr>
-                 ))}
-              </tbody>
-            </table>
-          </div>
-       </section>
-    </div>
-  </div>
-));
+  );
+});
 
 const AdminProfileView = memo(({ reports, onStatusChange }) => {
   const [filterStatus, setFilterStatus] = useState('All');
@@ -885,17 +985,19 @@ const Dashboard = memo(({ reports, role, onLogout, onVote, onAddReport, onAddCom
 
           {activeTab === 'notifications' && (
             <div className="anim-fade-up v-stack" style={{ alignItems: 'flex-start' }}>
-               {[
-                 { t: 'Report Under Review', d: 'Your submission #1402 is being analyzed by school administration.', time: '2h ago' },
-                 { t: 'Security Sync Complete', d: 'Encryption keys rotated. 100% anonymity maintained across all nodes.', time: '5h ago' },
-                 { t: 'New Feature Action', d: 'The V7 dashboard has been initialized for your operative profile.', time: '1d ago' }
-               ].map((notif, i) => (
-                 <div key={i} className="feed-card-v7" style={{ width: '100%', padding: '24px' }}>
+               {(notifications || []).length === 0 && (
+                 <div className="empty-hub-v18" style={{ width: '100%' }}>
+                    <Bell size={40} opacity={0.3} style={{ border: 'none' }}/>
+                    <p style={{ marginTop: '20px', color: 'var(--text-dim)' }}>Zero system broadcasts found.</p>
+                 </div>
+               )}
+               {(notifications || []).map((notif, i) => (
+                 <div key={notif.id} className="feed-card-v7" style={{ width: '100%', padding: '24px' }}>
                     <div className="flex-v6" style={{ justifyContent: 'space-between', marginBottom: '8px' }}>
-                       <span style={{ fontWeight: '700', fontSize: '15px' }}>{notif.t}</span>
-                       <span style={{ fontSize: '11px', color: 'var(--text-dim)' }}>{notif.time}</span>
+                       <span style={{ fontWeight: '700', fontSize: '15px', color: notif.user_id ? 'var(--primary)' : 'var(--accent-purple)' }}>{notif.title}</span>
+                       <span style={{ fontSize: '11px', color: 'var(--text-dim)' }}>{new Date(notif.timestamp).toLocaleDateString()}</span>
                     </div>
-                    <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>{notif.d}</p>
+                    <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>{notif.content}</p>
                  </div>
                ))}
             </div>
@@ -1394,12 +1496,26 @@ const App = () => {
   };
 
   const fetchAllUsers = async () => {
-    // Only admins should be able to do this, but for simplicity:
+    // Only admins should be able to do this
     const { data, error } = await supabase
       .from('profiles')
-      .select('*');
+      .select('*')
+      .order('created_at', { ascending: false });
     if (data) setRegisteredUsers(data);
   };
+
+  const [notifications, setNotifications] = useState([]);
+  const fetchNotifications = async () => {
+    const { data, error } = await supabase
+      .from('notifications')
+      .select('*')
+      .order('timestamp', { ascending: false });
+    if (data) setNotifications(data);
+  };
+
+  useEffect(() => {
+    if (session) fetchNotifications();
+  }, [session]);
 
   useEffect(() => {
     if (userRole === 'Admin' && view === 'dev') {
@@ -1499,6 +1615,24 @@ const App = () => {
 
     if (error) console.error('Error adding comment:', error);
   }, [reports]);
+
+  const handleSendNotification = useCallback(async (title, content, targetUserId = null) => {
+    const { error } = await supabase
+      .from('notifications')
+      .insert([{ title, content, user_id: targetUserId }]);
+    
+    if (error) console.error('Error sending notification:', error);
+  }, []);
+
+  const handleUpdateBanStatus = useCallback(async (userId, status) => {
+    const { error } = await supabase
+      .from('profiles')
+      .update({ is_banned: status })
+      .eq('id', userId);
+    
+    if (error) console.error('Error updating ban status:', error);
+    else fetchAllUsers();
+  }, []);
 
   const handleUpdateUsername = useCallback(async (newUsername) => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -1603,6 +1737,15 @@ const App = () => {
         return { ok: false, error: error.message === 'Invalid login credentials' ? 'Access Denied: Operative not found or invalid key.' : error.message };
       }
 
+      // Check if user is banned (if they have a profile)
+      if (data?.user) {
+        const { data: profile } = await supabase.from('profiles').select('is_banned').eq('id', data.user.id).single();
+        if (profile?.is_banned) {
+          await supabase.auth.signOut();
+          return { ok: false, error: "ACCESS_DENIED: Your operative account has been suspended." };
+        }
+      }
+
       // If logging in from /dev or if Master Override is active
       if ((window.location.pathname === '/dev' || isMaster) && (DEV_WHITELIST.includes(email.toLowerCase()) || email.endsWith('@vvce.ac.in'))) {
          if (DEV_WHITELIST.includes(email.toLowerCase())) {
@@ -1661,6 +1804,8 @@ const App = () => {
               users={registeredUsers} 
               onDelete={handleDeleteReport} 
               onStatusChange={handleStatusChange}
+              onSendNotification={handleSendNotification}
+              onUpdateBanStatus={handleUpdateBanStatus}
               onBack={() => { setView('dash'); }}
             />
           )}

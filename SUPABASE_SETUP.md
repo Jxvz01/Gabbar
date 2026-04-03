@@ -13,6 +13,7 @@ create table profiles (
   username text unique not null,
   role text default 'Student' check (role in ('Student', 'Professor', 'Admin')),
   campus_id text unique,
+  is_banned boolean default false,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
@@ -67,6 +68,30 @@ create policy "Admins can update all reports." on reports
 
 create policy "Users can delete their own reports." on reports
   for delete using (auth.uid() = user_id);
+
+-- 4. Notifications Table
+create table notifications (
+  id uuid default gen_random_uuid() primary key,
+  title text not null,
+  content text not null,
+  user_id uuid references auth.users(id), -- Null for 'Everyone'
+  type text default 'system',
+  timestamp timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+alter table notifications enable row level security;
+
+create policy "Users can view their own notifications and global ones." on notifications
+  for select using (auth.uid() = user_id or user_id is null);
+
+create policy "Admins can manage all notifications." on notifications
+  for all using (
+    exists (
+      select 1 from profiles 
+      where profiles.id = auth.uid() 
+      and profiles.role = 'Admin'
+    )
+  );
 ```
 
 ## 3. Environment Variables
