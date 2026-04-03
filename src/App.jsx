@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo, useRef, memo } from '
 import { motion, AnimatePresence } from 'framer-motion';
 import { Radio, Shield, Activity, FileText, CheckCircle, ChevronUp, ChevronDown, Lock, Loader2, Edit3, ArrowRight, Zap, MessageCircle, Send, AlertTriangle, Menu, X, Bell, User, LogOut, TrendingUp, Plus } from 'lucide-react';
 import './index.css';
-import { sanitize, isValidCollegeEmail, checkRateLimit, canPerformAction, anonymizeReport } from './security';
+import { sanitize, isValidCollegeEmail, checkRateLimit, canPerformAction, anonymizeReport, DEV_WHITELIST } from './security';
 import { supabase } from './supabase';
 
 // --- CONSTANTS ---
