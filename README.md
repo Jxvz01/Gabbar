@@ -1,125 +1,84 @@
-# 🦇 GABBAR — Anonymous Intelligence Command Center
+# 🦇 GABBAR — Anonymous Intelligence Hub (V9.2)
 
 [![Platform: React](https://img.shields.io/badge/Platform-React-blue.svg)](https://reactjs.org/)
 [![Vite: Optimized](https://img.shields.io/badge/Vite-Optimized-646CFF.svg)](https://vitejs.dev/)
+[![Database: Supabase](https://img.shields.io/badge/Database-Supabase-3ECF8E.svg)](https://supabase.com/)
 [![Design: Tech--Noir](https://img.shields.io/badge/Design-Tech--Noir-0F172A.svg)](#)
 
-GABBAR is a high-fidelity anonymous reporting platform designed as a **cinematic command center** for campus intelligence.
-
-It enables students to report issues without fear while giving administrators a structured system to monitor, prioritize, and act on critical information.
+GABBAR is a high-fidelity anonymous reporting platform designed as a **cinematic command center** for campus intelligence. It combines absolute anonymity for operatives with granular control for administrators.
 
 ---
 
-## 🧠 Core Concept
+## 🚀 Key Evolutionary Features (V9+)
 
-> **Absolute anonymity for users. Maximum clarity for decision-makers.**
+### 🕵️ /DEV ROOT TERMINAL
+A restricted, high-fidelity hacker-themed interface located at `/dev`. Designed for master operatives to oversee system integrity.
+- **Cinematic Matrix Rain** background.
+- **Root Authentication** bypass for whitelisted developers.
+- **Command Overrides** for system-wide management.
 
-GABBAR bridges the gap between **silent problems** and **visible action**.
+### 🔐 UPLINK SECURITY (Google OAuth)
+Integrated **Google OAuth** for seamless, secure campus-wide access, bypassing traditional email friction while maintaining encrypted identity layers.
+
+### 🕹️ ADMIN COMMAND CENTER (V28)
+An industrial-grade management panel with:
+- **Signal Broadcasts**: Send encrypted mass notifications or targeted user messages.
+- **Operative Lockdown**: Granular **Ban/Unban** controls for user management.
+- **Intel Purging**: Ability to permanently delete compromised or irrelevant reports.
+- **Live Ledger**: Real-time monitoring of all campus intelligence.
 
 ---
 
 ## 🏗️ System Architecture
 
 ### ⚡ Data-Dense Interface
-- Zero wasted space  
-- Structured dashboard layout  
-- High signal-to-noise UI  
+- Zero wasted space | Structured dashboard layout | High signal-to-noise UI
 
-### 🌌 Cinematic Monitoring Experience
-- Immersive dark UI (tech-noir inspired)  
-- Real-time styled feed with priority indicators  
-- Glassmorphism + layered depth  
+### 🌌 Tech-Noir Aesthetic
+- Immersive dark UI | Glassmorphism depth | Neon accent signaling (HSL)
 
-### 🧩 Modular Layout
-- Left: Navigation & control  
-- Center: Intelligence feed  
-- Right: Trends & highlights  
+### 🧩 Core Modules
+- **Left**: Command & Navigation
+- **Center**: Intelligence Feed (Real-time)
+- **Right**: Trends & System Highlights
 
 ---
 
-## 🔒 Security & Privacy
+## 🔒 Security Protocol
 
-GABBAR is designed with **anonymity-first architecture**:
+GABBAR is designed with **Anonymity-First Architecture**:
 
-- **Identity Decoupling**  
-  User identity is never exposed with reports  
-
-- **Anonymous User System**  
-  Custom anonymous usernames (e.g., ShadowFox)  
-
-- **Zero Metadata Exposure**  
-  No visible email, ID, or personal identifiers  
-
-- **Role-Based Access Control**  
-  - Students → report & interact  
-  - Admins → review & act  
+- **Identity Decoupling**: User identity is cryptographically separated from intelligence logs.
+- **Anonymous Codename System**: Custom operative handles (e.g., *ShadowFox*) are visible, but emails remain hidden.
+- **Master Operative Whitelist**: Strict developer-only access to root terminal tools.
+- **Domain Lockdown**: Restricted to `@vvce.ac.in` verified operatives.
 
 ---
 
-## ⚙️ Features
+## 🛠️ Stack Analysis
 
-### 📡 Intelligence Feed
-- Anonymous reports  
-- Upvote / amplify system  
-- Category-based tagging  
-- Status tracking (Pending / Review / Resolved)  
-
----
-
-### 💬 Discussion Layer
-- Anonymous comments  
-- Identity-safe interactions  
-- Threaded engagement  
+- **Core**: React 18 (Hooks + Memoization)
+- **Database**: Supabase (PostgreSQL + RLS Policies)
+- **Authentication**: Supabase Auth (GoTrue) + OAuth 2.0
+- **Styling**: Vanilla CSS (Global Tokens + Cinematic Keyframes)
+- **Motion**: Framer Motion (Orchestration & UI Micro-states)
 
 ---
 
-### 🧑‍💻 Profile System
-- Anonymous identity management  
-- Activity tracking (reports, comments)  
-- Impact visibility  
-
----
-
-### 🛠️ Admin Dashboard
-- Report management system  
-- Status updates & actions  
-- Filtering by priority/category  
-- Structured decision interface  
-
----
-
-## 🎨 Design System
-
-- Dark “Tech-Noir” theme  
-- Glassmorphism UI  
-- Neon accent highlights (blue/purple)  
-- Strong typography hierarchy (Inter)  
-- Smooth micro-interactions  
-
----
-
-## 🚀 Tech Stack
-
-- **Frontend:** React (Hooks + Context)  
-- **Build Tool:** Vite  
-- **Styling:** CSS3 (custom variables + animations)  
-- **Motion:** Framer Motion  
-
----
-
-## 🛠️ Setup
+## 🏗️ Deployment & Setup
 
 ```bash
-# Clone the repo
+# Clone the encrypted repository
 git clone https://github.com/Jxvz01/Gabbar.git
 
-# Navigate into project
-cd Gabbar
-
-# Install dependencies
+# Initialize environment
 npm install
 
-# Run locally
-npm run dev
+# Build production bundle
+npm run build
 
-© 2026 **GABBAR** | ANONYMOUS INTELLIGENCE HUB | Developed by Jxvz01
+# Boot local terminal
+npm run dev
+```
+
+© 2026 **GABBAR HUB** | ANONYMOUS INTELLIGENCE HUB | Developed by Jxvz01
