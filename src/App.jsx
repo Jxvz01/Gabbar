@@ -77,7 +77,6 @@ const LandingPage = ({ onJoin }) => {
             transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
             className="v-stack"
           >
-            <div className="hero-label-v7"><Shield size={14} className="glow-icon" /> SECURE_PROTOCOL_V7.3</div>
             <h1 className="hero-h1-v7">Silence is broken.<br/><span className="gradient-text">Intelligence begins.</span></h1>
             <p className="hero-p-v7">A high-fidelity, anonymous intelligence hub for campus safety and transparency. Your voice, protected by end-to-end encryption protocols.</p>
             
@@ -88,7 +87,7 @@ const LandingPage = ({ onJoin }) => {
                 className="btn-v7 primary" 
                 onClick={() => onJoin('auth', 'signup')}
               >
-                INITIALIZE_ACCESS <ArrowRight size={18} style={{ marginLeft: '12px' }}/>
+                Sign-Up <ArrowRight size={18} style={{ marginLeft: '12px' }}/>
               </motion.button>
               <motion.button 
                 whileHover={{ y: -3, scale: 1.05, background: 'rgba(255, 255, 255, 0.05)' }} 
@@ -225,7 +224,7 @@ const LandingPage = ({ onJoin }) => {
             <div className="cta-grid-bg"></div>
             <h2 className="cta-h2-v7">Ready to secure your campus?</h2>
             <p className="cta-p-v7">Join the intelligence hub and help build a safer, more transparent environment today.</p>
-            <button className="btn-v7 primary large" onClick={() => onJoin('auth', 'signup')}>INITIALIZE HUB CONNECTION</button>
+            <button className="btn-v7 primary large" onClick={() => onJoin('auth', 'signup')}>Sign-Up</button>
             <div className="cta-sub-v7">STRENGTHENED BY 335+ SECURE SYSTEM COMMITS</div>
          </motion.div>
       </section>
