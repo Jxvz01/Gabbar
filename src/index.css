@@ -994,3 +994,105 @@ body, html {
   }
 }
 
+
+/* 🕵️ DEV_AUTH_TERMINAL V15: HACKER AESTHETIC */
+.dev-auth-master {
+  position: fixed; inset: 0; background: #010409;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 9999; overflow: hidden; font-family: 'Inter', monospace;
+}
+
+.hacker-bg {
+  position: absolute; inset: 0; z-index: -1;
+  background: radial-gradient(circle at center, #010409 0%, #000 100%);
+}
+
+.matrix-rain {
+  position: absolute; inset: 0; opacity: 0.1;
+  background-image: linear-gradient(180deg, transparent 0%, #10b981 100%);
+  background-size: 1px 1500px;
+  animation: matrix-v15 40s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes matrix-v15 {
+  from { background-position: 0 -1500px; }
+  to { background-position: 0 1500px; }
+}
+
+.scan-line {
+  position: absolute; width: 100%; height: 100px;
+  background: linear-gradient(180deg, transparent, rgba(16, 185, 129, 0.08), transparent);
+  animation: scan-v15 4s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes scan-v15 {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
+
+.dev-auth-card {
+  width: 480px; background: rgba(13, 17, 23, 0.9);
+  border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px;
+  box-shadow: 0 30px 60px rgba(0,0,0,0.8), 0 0 40px rgba(16, 185, 129, 0.1), inset 0 0 20px rgba(16, 185, 129, 0.05);
+  overflow: hidden; backdrop-filter: blur(12px);
+  position: relative; z-index: 10;
+}
+
+.terminal-header {
+  height: 48px; background: #161b22; border-bottom: 1px solid #10b98133;
+  display: flex; align-items: center; padding: 0 24px; justify-content: space-between;
+}
+
+.terminal-header .dots { display: flex; gap: 8px; }
+.terminal-header .dot { width: 10px; height: 10px; border-radius: 50%; opacity: 0.8; }
+.terminal-header .dot.red { background: #ff5f56; }
+.terminal-header .dot.yellow { background: #ffbd2e; }
+.terminal-header .dot.green { background: #27c93f; }
+.terminal-header .title { font-size: 10px; font-weight: 900; color: #10b981; letter-spacing: 2px; text-transform: uppercase; }
+
+.terminal-body { padding: 48px 40px; }
+
+.dev-h2 { font-size: 28px; font-weight: 900; color: #fff; letter-spacing: -0.01em; margin-bottom: 8px; }
+.dev-p { font-size: 11px; color: #10b981; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 40px; opacity: 0.8; }
+
+.input-field-v15 { width: 100%; display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
+.input-field-v15 label { font-size: 9px; font-weight: 900; color: #10b981; letter-spacing: 2px; text-transform: uppercase; opacity: 0.7; }
+.input-field-v15 input {
+  background: #0d1117; border: 1px solid #30363d; border-radius: 4px;
+  padding: 18px; color: #e6edf3; font-size: 14px; font-family: 'Courier New', monospace;
+  transition: 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.input-field-v15 input:focus { border-color: #10b981; outline: none; box-shadow: 0 0 20px rgba(16, 185, 129, 0.2); background: rgba(16, 185, 129, 0.05); }
+
+.dev-btn {
+  width: 100%; padding: 20px; background: rgba(16, 185, 129, 0.05); border: 1px solid #10b981;
+  color: #10b981; font-weight: 900; font-size: 13px; letter-spacing: 2px;
+  text-transform: uppercase; cursor: pointer; transition: 0.3s;
+  margin-top: 8px; margin-bottom: 24px;
+}
+.dev-btn:hover:not(:disabled) { background: #10b981; color: #000; box-shadow: 0 0 40px rgba(16, 185, 129, 0.6); transform: translateY(-2px); }
+.dev-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.dev-back {
+  background: none; border: none; color: #484f58; font-size: 10px; font-weight: 800;
+  letter-spacing: 1px; cursor: pointer; transition: 0.2s; text-transform: uppercase; margin: 0 auto; display: block;
+}
+.dev-back:hover { color: #fff; }
+
+.dev-error {
+  display: flex; align-items: center; gap: 10px; color: #f85149;
+  font-size: 11px; font-weight: 900; letter-spacing: 0.5px;
+  padding: 14px; background: rgba(248, 81, 73, 0.1); border-radius: 6px;
+  margin-bottom: 24px; border: 1px solid rgba(248, 81, 73, 0.2);
+}
+
+.terminal-footer {
+  padding: 16px 24px; background: #161b22; border-top: 1px solid #10b98122;
+  display: flex; justify-content: space-between; font-size: 9px; font-weight: 800;
+  color: #484f58; letter-spacing: 1px; text-transform: uppercase;
+}
+
+.dev-glow-icon { filter: drop-shadow(0 0 24px rgba(16, 185, 129, 0.5)); color: #10b981; margin-bottom: 32px; }
+

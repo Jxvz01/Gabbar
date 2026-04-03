@@ -12,6 +12,7 @@ create table profiles (
   email text unique not null,
   username text unique not null,
   role text default 'Student' check (role in ('Student', 'Professor', 'Admin')),
+  campus_id text unique,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 

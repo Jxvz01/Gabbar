@@ -543,11 +543,106 @@ const AdminProfileView = memo(({ reports, onStatusChange }) => {
   );
 });
 
+const DevAuthPage = memo(({ onAuthSuccess, onBack }) => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [authError, setAuthError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setAuthError('');
+    
+    // Dev login always uses 'Admin' role intent and 'login' mode
+    const result = await onAuthSuccess('Admin', email, 'DEV_OPERATIVE', 'login', password);
+    
+    if (!result?.ok) {
+      setAuthError(result?.error || 'ACCESS_DENIED: System breach detected.');
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="dev-auth-master">
+      <div className="hacker-bg">
+        <div className="matrix-rain"></div>
+        <div className="scan-line"></div>
+      </div>
+      
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.9, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        className="dev-auth-card glass-v15"
+      >
+        <div className="terminal-header">
+          <div className="dots">
+            <div className="dot red"></div>
+            <div className="dot yellow"></div>
+            <div className="dot green"></div>
+          </div>
+          <div className="title">SYS_ROOT_ACCESS</div>
+        </div>
+        
+        <div className="terminal-body v-stack" style={{ gap: '32px' }}>
+          <div className="auth-branding">
+            <Shield size={48} className="dev-glow-icon" />
+            <h2 className="dev-h2">UPLINK_TERMINAL_V9</h2>
+            <p className="dev-p">Restricted Access: Authorized Personnel Only</p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="v-stack" style={{ gap: '20px', width: '100%' }}>
+            <div className="input-field-v15">
+              <label>OPERATIVE_ID</label>
+              <input 
+                type="email" 
+                value={email} 
+                onChange={e => { setEmail(e.target.value); setAuthError(''); }}
+                placeholder="root@intelligence.hub"
+                required
+              />
+            </div>
+            
+            <div className="input-field-v15">
+              <label>ENCRYPTION_KEY</label>
+              <input 
+                type="password" 
+                value={password} 
+                onChange={e => { setPassword(e.target.value); setAuthError(''); }}
+                placeholder="••••••••"
+                required
+              />
+            </div>
+
+            {authError && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="dev-error">
+                <AlertTriangle size={14} /> {authError.toUpperCase()}
+              </motion.div>
+            )}
+
+            <button type="submit" className="dev-btn" disabled={isLoading}>
+              {isLoading ? 'ESTABLISHING_LINK...' : 'INITIALIZE_COMMAND_OVERRIDE'}
+            </button>
+          </form>
+
+          <button onClick={onBack} className="dev-back">← TERMINATE_SESSION</button>
+        </div>
+
+        <div className="terminal-footer">
+          <span className="status">GATEWAY: SECURE</span>
+          <span className="node">NODE: 0x4F92</span>
+        </div>
+      </motion.div>
+    </div>
+  );
+});
+
 const AuthPage = memo(({ initialMode = 'login', onAuthSuccess, onBack }) => {
   const [mode, setMode] = useState(initialMode);
   const [role, setRole] = useState('Student');
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
+  const [campusId, setCampusId] = useState('');
   const [authError, setAuthError] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
   const [typedCode, setTypedCode] = useState('');
@@ -562,7 +657,7 @@ const AuthPage = memo(({ initialMode = 'login', onAuthSuccess, onBack }) => {
     }
     
     const password = e.target.password.value;
-    onAuthSuccess(role, email, username || 'ANON_OPERATIVE', mode, password).then(result => {
+    onAuthSuccess(role, email, username || 'ANON_OPERATIVE', mode, password, null, campusId).then(result => {
       if (!result?.ok) {
         setAuthError(result?.error || 'Verification Failed: Check Operative Key.');
         if (result?.needsVerification) setIsVerifying(true);
@@ -578,7 +673,7 @@ const AuthPage = memo(({ initialMode = 'login', onAuthSuccess, onBack }) => {
   const handleVerify = (e) => {
     e.preventDefault();
     setAuthError('');
-    onAuthSuccess(role, email, username || 'ANON_OPERATIVE', 'verify', null, typedCode).then(result => {
+    onAuthSuccess(role, email, username || 'ANON_OPERATIVE', 'verify', null, typedCode, campusId).then(result => {
       if (!result?.ok) {
         setAuthError(result?.error || 'INVALID_CODE: Verification mismatch.');
       }
@@ -633,11 +728,18 @@ const AuthPage = memo(({ initialMode = 'login', onAuthSuccess, onBack }) => {
                {authError && <div className="error-msg-v27 anim-fade-in">{authError}</div>}
             </div>
 
-            <input className="input-v3" name="password" type="password" placeholder="ENCRYPTION KEY" defaultValue="pass123" required />
+            <input className="input-v3" name="password" type="password" placeholder="ENCRYPTION KEY" required />
             
             {mode === 'signup' && (
               <div className="v-stack" style={{ gap: '16px', width: '100%', marginBottom: '24px' }}>
-                <input className="input-v3" type="text" placeholder="CAMPUS ID / ROLL NO" required />
+                <input 
+                  className="input-v3" 
+                  type="text" 
+                  placeholder="CAMPUS ID / ROLL NO" 
+                  value={campusId}
+                  onChange={(e) => setCampusId(e.target.value)}
+                  required 
+                />
                 <input 
                   className="input-v3" 
                   type="text" 
@@ -1204,7 +1306,24 @@ const App = () => {
   const [registeredUsers, setRegisteredUsers] = useState([]);
   const [session, setSession] = useState(null);
 
+  const [isDevRoute, setIsDevRoute] = useState(false);
+
   // --- INITIALIZATION ---
+  useEffect(() => {
+    // Detect /dev route
+    if (window.location.pathname === '/dev') {
+      setIsDevRoute(true);
+      const isWhitelisted = session?.user?.email && DEV_WHITELIST.includes(session.user.email.toLowerCase());
+      
+      if (session && isWhitelisted) {
+        setUserRole('Admin');
+        setView('dev');
+      } else if (view !== 'dev' && view !== 'dev_auth') {
+        setView('dev_auth');
+      }
+    }
+  }, [view, session]);
+
   useEffect(() => {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -1397,7 +1516,7 @@ const App = () => {
     }
   }, []);
 
-  const handleAuth = async (role, email, username, mode, password, code) => {
+  const handleAuth = async (role, email, username, mode, password, code, campusId) => {
     // Task 5: Strict domain check
     if (!isValidCollegeEmail(email)) {
       return { ok: false, error: "Access Denied: Only VVCE emails allowed (@vvce.ac.in)" };
@@ -1408,6 +1527,9 @@ const App = () => {
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
+          options: {
+            emailRedirectTo: window.location.origin,
+          }
         });
 
         console.log("AUTH_DIAGNOSTICS:", { data, error });
@@ -1422,14 +1544,36 @@ const App = () => {
 
         if (data.user) {
           try {
-            const { error: profileError } = await supabase
+            // Check if profile already exists to handle cases where signUp was previously successful but unconfirmed
+            const { data: existingProfile } = await supabase
               .from('profiles')
-              .insert([{ id: data.user.id, email, username, role }]);
+              .select('id')
+              .eq('id', data.user.id)
+              .single();
+
+            if (!existingProfile) {
+              const { error: profileError } = await supabase
+                .from('profiles')
+                .insert([{ id: data.user.id, email, username, role, campus_id: campusId }]);
+              
+              if (profileError) {
+                // If it's a unique constraint error
+                if (profileError.message.includes('unique constraint')) {
+                  if (profileError.message.includes('username')) {
+                    return { ok: false, error: "Codename already taken. Choose another alias." };
+                  }
+                  if (profileError.message.includes('campus_id')) {
+                    return { ok: false, error: "Campus ID already registered." };
+                  }
+                }
+                throw profileError;
+              }
+            }
             
-            if (profileError) throw profileError;
             return { ok: true, needsVerification: true, error: "Check your VVCE inbox for 6-digit verification code." };
           } catch (pErr) {
-            return { ok: false, error: "System failed to initialize profile. Contact Admin." };
+            console.error("PROFILE_INIT_ERROR:", pErr);
+            return { ok: false, error: "System failed to initialize profile. Profile might already exist." };
           }
         }
       } catch (globalErr) {
@@ -1450,8 +1594,18 @@ const App = () => {
     }
 
     if (mode === 'login') {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) return { ok: false, error: error.message === 'Invalid login credentials' ? 'Access Denied: Operative not found or invalid key.' : error.message };
+      
+      // If logging in from /dev, check if user is in whitelist and set view to dev
+      if (window.location.pathname === '/dev' && (DEV_WHITELIST.includes(email.toLowerCase()) || email.endsWith('@vvce.ac.in'))) {
+         // We might need to wait for profile fetch to confirm Admin role, 
+         // but for Dev route we can force the view if they are in the whitelist
+         if (DEV_WHITELIST.includes(email.toLowerCase())) {
+            setUserRole('Admin');
+            setView('dev');
+         }
+      }
       return { ok: true };
     }
 
@@ -1494,13 +1648,14 @@ const App = () => {
             />
 
           )}
+          {view === 'dev_auth' && <DevAuthPage onAuthSuccess={handleAuth} onBack={() => { window.history.pushState({}, '', '/'); setView('landing'); setIsDevRoute(false); }} />}
           {view === 'dev' && (
             <DevPanel 
               reports={reports} 
               users={registeredUsers} 
               onDelete={handleDeleteReport} 
               onStatusChange={handleStatusChange}
-              onBack={() => setView('dash')}
+              onBack={() => { setView('dash'); }}
             />
           )}
         </>
