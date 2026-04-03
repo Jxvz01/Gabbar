@@ -100,3 +100,9 @@ Add these to your `.env` file:
 VITE_SUPABASE_URL=your_project_url
 VITE_SUPABASE_ANON_KEY=your_anon_key
 ```
+
+## 5. Google OAuth Setup
+Enable Google provider in Supabase Auth > Providers > Google.
+Add your Client ID and Secret from Google Cloud Console.
+Set callback URL to: https://YOUR_PROJECT_REF.supabase.co/auth/v1/callback
+
