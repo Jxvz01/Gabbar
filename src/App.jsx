@@ -95,7 +95,7 @@ const LandingPage = ({ onJoin }) => {
                 className="btn-v7 secondary" 
                 onClick={() => onJoin('auth', 'login')}
               >
-                AUTHENTICATE
+                Sign-In
               </motion.button>
             </div>
           </motion.div>
@@ -801,7 +801,7 @@ const AuthPage = memo(({ initialMode = 'login', onAuthSuccess, onGoogleAuth, onB
                />
                {authError && <div className="error-msg-v27 anim-fade-in">{authError}</div>}
             </div>
-            <button type="submit" className="btn-main primary full hover-glow">INITIALIZE_HUB_ACCESS</button>
+            <button type="submit" className="btn-main primary full hover-glow">Sign-In</button>
             <p className="auth-toggle-v4" onClick={() => setIsVerifying(false)} style={{marginTop: '20px', cursor:'pointer', fontSize:'12px'}}>← Back to credentials</p>
           </form>
         ) : (
@@ -851,7 +851,7 @@ const AuthPage = memo(({ initialMode = 'login', onAuthSuccess, onGoogleAuth, onB
             )}
 
             <button type="submit" className="btn-main primary full hover-glow">
-              {mode === 'login' ? 'INITIALIZE CONNECTION' : 'CREATE ACCOUNT'}
+              {mode === 'login' ? 'Sign-In' : 'Sign-Up'}
             </button>
 
             <div className="flex-v6" style={{ width: '100%', margin: '12px 0 0 0' }}>
@@ -874,7 +874,7 @@ const AuthPage = memo(({ initialMode = 'login', onAuthSuccess, onGoogleAuth, onB
               <p className="forgot-p" onClick={() => alert('INTELLIGENCE RECOVERY: Contact System Admin for key reset.')}>Forgot encryption key?</p>
             </>
           ) : (
-            <p>Already registered? <span onClick={() => { setMode('login'); setAuthError(''); }}>Authenticate</span></p>
+            <p>Already registered? <span onClick={() => { setMode('login'); setAuthError(''); }}>Sign-In</span></p>
           )}
         </div>
       </div>
