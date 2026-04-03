@@ -1,0 +1,10 @@
+{
+  "name": "GABBAR Intelligence Hub",
+  "short_name": "GABBAR",
+  "description": "Anonymous campus intelligence reporting platform",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#030712",
+  "theme_color": "#3b82f6",
+  "orientation": "portrait"
+}
