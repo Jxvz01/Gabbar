@@ -737,7 +737,7 @@ const DevAuthPage = memo(({ onAuthSuccess, onBack }) => {
   );
 });
 
-const AuthPage = memo(({ initialMode = 'login', onAuthSuccess, onBack }) => {
+const AuthPage = memo(({ initialMode = 'login', onAuthSuccess, onGoogleAuth, onBack }) => {
   const [mode, setMode] = useState(initialMode);
   const [role, setRole] = useState('Student');
   const [email, setEmail] = useState('');
@@ -853,6 +853,17 @@ const AuthPage = memo(({ initialMode = 'login', onAuthSuccess, onBack }) => {
 
             <button type="submit" className="btn-main primary full hover-glow">
               {mode === 'login' ? 'INITIALIZE CONNECTION' : 'CREATE ACCOUNT'}
+            </button>
+
+            <div className="flex-v6" style={{ width: '100%', margin: '12px 0 0 0' }}>
+               <div style={{ height: '1px', flex: 1, background: 'var(--glass-border)' }}></div>
+               <span style={{ fontSize: '10px', color: 'var(--text-dim)', fontWeight: '800', padding: '0 10px' }}>OR</span>
+               <div style={{ height: '1px', flex: 1, background: 'var(--glass-border)' }}></div>
+            </div>
+
+            <button type="button" onClick={onGoogleAuth} className="btn-google-v1">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="G" style={{ width: '16px' }} />
+                <span>CONTINUE WITH GOOGLE</span>
             </button>
           </form>
         )}
@@ -1634,6 +1645,16 @@ const App = () => {
     else fetchAllUsers();
   }, []);
 
+  const handleGoogleAuth = useCallback(async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin
+      }
+    });
+    if (error) alert("GOOGLE_AUTH_ERROR: " + error.message);
+  }, []);
+
   const handleUpdateUsername = useCallback(async (newUsername) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
@@ -1778,7 +1799,7 @@ const App = () => {
       {!isBooting && (
         <>
           {view === 'landing' && <LandingPage onJoin={startBoot} />}
-          {view === 'auth' && <AuthPage initialMode={nextMode} onAuthSuccess={handleAuth} onBack={() => setView('landing')} />}
+          {view === 'auth' && <AuthPage initialMode={nextMode} onAuthSuccess={handleAuth} onGoogleAuth={handleGoogleAuth} onBack={() => setView('landing')} />}
           {view === 'dash' && (
             <Dashboard 
               reports={reports} 
