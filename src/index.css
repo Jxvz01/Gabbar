@@ -1104,3 +1104,6 @@ body, html {
 
 .dev-glow-icon { filter: drop-shadow(0 0 24px rgba(16, 185, 129, 0.5)); color: #10b981; margin-bottom: 32px; }
 
+
+/* === ACCESSIBILITY === */
+:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
