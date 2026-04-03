@@ -12,3 +12,9 @@ All contributors must maintain the anonymity-first architecture.
 ## Commit Convention
 Use semantic prefixes: feat, fix, docs, refactor, ui, a11y, seo, config, perf, test
 
+
+## Branch Naming
+- feature/description
+- fix/description
+- docs/description
+
