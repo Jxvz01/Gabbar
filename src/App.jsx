@@ -6,6 +6,7 @@ import { sanitize, isValidCollegeEmail, checkRateLimit, canPerformAction, anonym
 import { supabase } from './supabase';
 
 // --- CONSTANTS ---
+// Core application categories and statuses used across all report-related components
 const CATEGORIES = ['Facilities', 'Harassment', 'Academics', 'Safety', 'Suggestions', 'Other'];
 const STATUSES = ['Under Review', 'Resolved', 'Pending'];
 const isMobileDevice = typeof window !== 'undefined' && window.innerWidth <= 1024;
