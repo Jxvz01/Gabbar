@@ -1124,3 +1124,6 @@ body, html {
 
 /* === BADGE STYLES === */
 .badge-critical { background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
+
+/* === INPUT FOCUS IMPROVEMENTS === */
+.input-v3:focus, .input-v9:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
