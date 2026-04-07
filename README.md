@@ -82,3 +82,7 @@ npm run dev
 ```
 
 © 2026 **GABBAR HUB** | ANONYMOUS INTELLIGENCE HUB | Developed by Jxvz01
+
+## Project Vision
+GABBAR aims to be the gold standard for anonymous campus intelligence, providing a secure, high-fidelity platform for students and faculty to share critical information without fear of retaliation.
+

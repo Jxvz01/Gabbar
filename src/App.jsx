@@ -238,7 +238,7 @@ const LandingPage = ({ onJoin }) => {
                   <p className="footer-brand-p">Next-Gen Intelligence Shield</p>
                </div>
                <div className="footer-links">
-                  <p className="footer-text">© 2026 GABBAR | Developed by <a href="https://www.instagram.com/__.jxvz01" target="_blank" rel="noopener noreferrer" className="dev-link">Jxvz01</a></p>
+                  <p className="footer-text">© 2026 GABBAR | Developed by <a href="https://jxvz01.vercel.app" target="_blank" rel="noopener noreferrer" className="dev-link">Jxvz01</a></p>
                   <div className="security-badge">SECURE_SSL_V3</div>
                </div>
             </div>
@@ -1222,7 +1222,7 @@ const Dashboard = memo(({ reports, role, onLogout, onVote, onAddReport, onAddCom
         </div>
       )}
       <footer className="footer-master" style={{marginTop: 'auto', border: 'none', background: 'none', padding: '24px 0'}}>
-         <p className="footer-text" style={{fontSize: '10px', opacity: 0.5, textAlign: 'center'}}>© 2026 GABBAR | ANONYMOUS INTELLIGENCE HUB | Developed by <a href="https://www.instagram.com/__.jxvz01" target="_blank" rel="noopener noreferrer" style={{color: 'var(--primary)', fontWeight: '800', textDecoration: 'none'}}>Jxvz01</a></p>
+         <p className="footer-text" style={{fontSize: '10px', opacity: 0.5, textAlign: 'center'}}>© 2026 GABBAR | ANONYMOUS INTELLIGENCE HUB | Developed by <a href="https://jxvz01.vercel.app" target="_blank" rel="noopener noreferrer" style={{color: 'var(--primary)', fontWeight: '800', textDecoration: 'none'}}>Jxvz01</a></p>
       </footer>
     </div>
   );
