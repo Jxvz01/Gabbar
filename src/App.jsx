@@ -5,7 +5,8 @@ import './index.css';
 import { sanitize, isValidCollegeEmail, checkRateLimit, canPerformAction, anonymizeReport, DEV_WHITELIST } from './security';
 import { supabase } from './supabase';
 
-// --- CONSTANTS ---
+// --- SYSTEM CONSTANTS ---
+// Centralized configuration for the Gabbar ecosystem
 // Core application categories and statuses used across all report-related components
 const CATEGORIES = ['Facilities', 'Harassment', 'Academics', 'Safety', 'Suggestions', 'Other'];
 const STATUSES = ['Under Review', 'Resolved', 'Pending'];
