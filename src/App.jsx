@@ -1261,7 +1261,7 @@ const ReportCard = memo(({ report, onVote, role, activeVote, onAddComment, onDel
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: (index % 3) * 0.1 }}
       viewport={{ once: true, margin: '-50px' }}
-      whileHover={{ y: -8, transition: { duration: 0.2 } }}
+      whileHover={{ y: -12, scale: 1.01, transition: { duration: 0.2 } }}
       className={`card-v18 border-${report.category} ${index % 2 === 0 ? '' : 'card-alt-v18'}`}
       style={{ marginBottom: '32px' }}
     >
