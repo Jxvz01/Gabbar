@@ -170,7 +170,7 @@ body, html {
     linear-gradient(90deg, rgba(59, 130, 246, 0.05) 1px, transparent 1px);
   background-size: 80px 80px;
   transform: perspective(1000px) rotateX(60deg) translateY(-200px);
-  animation: grid-flow 20s linear infinite;
+  animation: grid-flow 15s linear infinite;
 }
 
 @keyframes grid-flow {
