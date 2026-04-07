@@ -106,3 +106,9 @@ Enable Google provider in Supabase Auth > Providers > Google.
 Add your Client ID and Secret from Google Cloud Console.
 Set callback URL to: https://YOUR_PROJECT_REF.supabase.co/auth/v1/callback
 
+
+## System Architecture Overview
+- **Frontend**: Vite + React + Framer Motion
+- **Backend**: Supabase (PostgreSQL + Auth + RLS)
+- **Security**: Metal-layer encryption and metadata stripping.
+
