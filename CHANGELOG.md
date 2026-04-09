@@ -54,3 +54,8 @@
 - Implemented Row Level Security policies
 - Added real-time report subscriptions
 
+## [8.0.0] - 2026-04-01
+- Full UI redesign with Tech-Noir aesthetic
+- Added cinematic landing page with particle systems
+- Implemented anonymous comment threading
+
