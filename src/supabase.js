@@ -1,4 +1,5 @@
 // Supabase client singleton - initialized once per app lifecycle
+// Supabase client singleton - initialized once per app lifecycle
 import { createClient } from '@supabase/supabase-js'
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
