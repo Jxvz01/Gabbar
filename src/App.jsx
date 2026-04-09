@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Radio, Shield, Activity, FileText, CheckCircle, ChevronUp, ChevronDown, Lock, Loader2, Edit3, ArrowRight, Zap, MessageCircle, Send, AlertTriangle, Menu, X, Bell, User, LogOut, TrendingUp, Plus } from 'lucide-react';
+import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import './index.css';
 import { sanitize, isValidCollegeEmail, checkRateLimit, canPerformAction, anonymizeReport, DEV_WHITELIST } from './security';
 import { supabase } from './supabase';
@@ -884,8 +885,23 @@ const AuthPage = memo(({ initialMode = 'login', onAuthSuccess, onGoogleAuth, onB
   );
 });
 
-const Dashboard = memo(({ reports, role, onLogout, onVote, onAddReport, onAddComment, onStatusChange, onDeleteReport, userVotes, winWidth, currentUser, onUpdateUsername, currentUserEmail }) => {
-  const [activeTab, setActiveTab] = useState('feed');
+const Dashboard = memo(({ reports, role, onLogout, onVote, onAddReport, onAddComment, onStatusChange, onDeleteReport, userVotes, winWidth, currentUser, onUpdateUsername, currentUserEmail, notifications }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  
+  // Map pathname to activeTab
+  const activeTab = useMemo(() => {
+    const path = location.pathname;
+    if (path === '/notifications') return 'notifications';
+    if (path === '/profile') return 'profile';
+    return 'feed';
+  }, [location.pathname]);
+
+  const setActiveTab = (tab) => {
+    if (tab === 'feed') navigate('/home');
+    else navigate(`/${tab}`);
+  };
+
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [subState, setSubState] = useState('idle'); // idle, loading, success
   const [isEditingUsername, setIsEditingUsername] = useState(false);
@@ -1407,7 +1423,9 @@ const SystemBoot = ({ onComplete }) => {
 };
 
 const App = () => {
-  const [view, setView] = useState('landing');
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const [isBooting, setIsBooting] = useState(false);
   const [userRole, setUserRole] = useState('Student');
   const [reports, setReports] = useState([]);
@@ -1422,21 +1440,18 @@ const App = () => {
 
   const [isDevRoute, setIsDevRoute] = useState(false);
 
-  // --- INITIALIZATION ---
   useEffect(() => {
     // Detect /dev route
-    if (window.location.pathname === '/dev') {
-      setIsDevRoute(true);
+    if (location.pathname === '/dev') {
       const isWhitelisted = session?.user?.email && DEV_WHITELIST.includes(session.user.email.toLowerCase());
       
       if (session && isWhitelisted) {
         setUserRole('Admin');
-        setView('dev');
-      } else if (view !== 'dev' && view !== 'dev_auth') {
-        setView('dev_auth');
+      } else if (location.pathname !== '/dev/auth') {
+        navigate('/dev/auth');
       }
     }
-  }, [view, session]);
+  }, [location.pathname, session]);
 
   useEffect(() => {
     // Get initial session
@@ -1445,7 +1460,9 @@ const App = () => {
       if (session) {
         setCurrentUserEmail(session.user.email);
         fetchProfile(session.user.id);
-        setView('dash');
+        if (location.pathname === '/' || location.pathname === '/auth') {
+          navigate('/home');
+        }
       }
     });
 
@@ -1455,16 +1472,18 @@ const App = () => {
       if (session) {
         setCurrentUserEmail(session.user.email);
         fetchProfile(session.user.id);
-        setView('dash');
+        if (location.pathname === '/' || location.pathname === '/auth') {
+          navigate('/home');
+        }
       } else {
-        setView('landing');
+        navigate('/');
         setCurrentUserEmail('');
         setCurrentUser({ username: 'ANON_OPERATIVE' });
       }
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [navigate]);
 
   useEffect(() => {
     fetchReports();
@@ -1530,10 +1549,10 @@ const App = () => {
   }, [session]);
 
   useEffect(() => {
-    if (userRole === 'Admin' && view === 'dev') {
+    if (userRole === 'Admin' && location.pathname === '/dev') {
       fetchAllUsers();
     }
-  }, [userRole, view]);
+  }, [userRole, location.pathname]);
 
   useEffect(() => {
     const handleResize = () => setWinWidth(window.innerWidth);
@@ -1543,8 +1562,10 @@ const App = () => {
 
   const handleBootComplete = useCallback(() => {
     setIsBooting(false);
-    if (nextView) setView(nextView);
-  }, [nextView]);
+    if (nextView === 'auth') navigate('/auth');
+    else if (nextView === 'dash') navigate('/home');
+    else if (nextView === 'dev') navigate('/dev');
+  }, [nextView, navigate]);
 
   const handleStatusChange = useCallback(async (id, newStatus) => {
     if (!canPerformAction(userRole, 'manage_status')) return;
@@ -1769,10 +1790,10 @@ const App = () => {
       }
 
       // If logging in from /dev or if Master Override is active
-      if ((window.location.pathname === '/dev' || isMaster) && (DEV_WHITELIST.includes(email.toLowerCase()) || email.endsWith('@vvce.ac.in'))) {
+      if ((location.pathname === '/dev' || isMaster) && (DEV_WHITELIST.includes(email.toLowerCase()) || email.endsWith('@vvce.ac.in'))) {
          if (DEV_WHITELIST.includes(email.toLowerCase())) {
             setUserRole('Admin');
-            setView('dev');
+            navigate('/dev');
             // Log bypass if no data.user
             if (!data?.user) console.warn("ROOT_OVERRIDE: Access granted via Master Key bypass.");
          }
@@ -1785,7 +1806,7 @@ const App = () => {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    setView('landing');
+    navigate('/');
   };
 
   const startBoot = (target, mode = 'login') => {
@@ -1798,10 +1819,17 @@ const App = () => {
     <div className="app-v3 dark-mode">
       {isBooting && <SystemBoot onComplete={handleBootComplete} />}
       {!isBooting && (
-        <>
-          {view === 'landing' && <LandingPage onJoin={startBoot} />}
-          {view === 'auth' && <AuthPage initialMode={nextMode} onAuthSuccess={handleAuth} onGoogleAuth={handleGoogleAuth} onBack={() => setView('landing')} />}
-          {view === 'dash' && (
+        <Routes>
+          <Route path="/" element={<LandingPage onJoin={startBoot} />} />
+          <Route path="/auth" element={
+            <AuthPage 
+              initialMode={nextMode} 
+              onAuthSuccess={handleAuth} 
+              onGoogleAuth={handleGoogleAuth} 
+              onBack={() => navigate('/')} 
+            />
+          } />
+          <Route path="/home" element={
             <Dashboard 
               reports={reports} 
               role={userRole} 
@@ -1816,22 +1844,69 @@ const App = () => {
               currentUser={currentUser}
               onUpdateUsername={handleUpdateUsername}
               currentUserEmail={currentUserEmail}
+              notifications={notifications}
             />
-
-          )}
-          {view === 'dev_auth' && <DevAuthPage onAuthSuccess={handleAuth} onBack={() => { window.history.pushState({}, '', '/'); setView('landing'); setIsDevRoute(false); }} />}
-          {view === 'dev' && (
-            <DevPanel 
+          } />
+          <Route path="/notifications" element={
+            <Dashboard 
               reports={reports} 
-              users={registeredUsers} 
-              onDelete={handleDeleteReport} 
+              role={userRole} 
+              onLogout={handleLogout} 
+              onVote={handleVote} 
+              onAddReport={addReport} 
+              onAddComment={handleAddComment}
               onStatusChange={handleStatusChange}
-              onSendNotification={handleSendNotification}
-              onUpdateBanStatus={handleUpdateBanStatus}
-              onBack={() => { setView('dash'); }}
+              onDeleteReport={handleDeleteReport}
+              userVotes={userVotes}
+              winWidth={winWidth}
+              currentUser={currentUser}
+              onUpdateUsername={handleUpdateUsername}
+              currentUserEmail={currentUserEmail}
+              notifications={notifications}
             />
-          )}
-        </>
+          } />
+          <Route path="/profile" element={
+            <Dashboard 
+              reports={reports} 
+              role={userRole} 
+              onLogout={handleLogout} 
+              onVote={handleVote} 
+              onAddReport={addReport} 
+              onAddComment={handleAddComment}
+              onStatusChange={handleStatusChange}
+              onDeleteReport={handleDeleteReport}
+              userVotes={userVotes}
+              winWidth={winWidth}
+              currentUser={currentUser}
+              onUpdateUsername={handleUpdateUsername}
+              currentUserEmail={currentUserEmail}
+              notifications={notifications}
+            />
+          } />
+          <Route path="/dev/auth" element={
+            <DevAuthPage 
+              onAuthSuccess={handleAuth} 
+              onBack={() => navigate('/')} 
+            />
+          } />
+          <Route path="/dev" element={
+            userRole === 'Admin' ? (
+              <DevPanel 
+                reports={reports} 
+                users={registeredUsers} 
+                onDelete={handleDeleteReport} 
+                onStatusChange={handleStatusChange}
+                onSendNotification={handleSendNotification}
+                onUpdateBanStatus={handleUpdateBanStatus}
+                onBack={() => navigate('/home')}
+              />
+            ) : (
+              <Navigate to="/dev/auth" />
+            )
+          } />
+          {/* Fallback */}
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
       )}
     </div>
   );
