@@ -59,3 +59,8 @@
 - Added cinematic landing page with particle systems
 - Implemented anonymous comment threading
 
+## [7.0.0] - 2026-03-29
+- Initial cinematic landing page
+- Role-based access control
+- Report submission and voting system
+
