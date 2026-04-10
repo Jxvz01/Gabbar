@@ -1,15 +1,23 @@
-# 🦇 GABBAR — Anonymous Intelligence Hub (V9.2)
+# 🦇 GABBAR — Anonymous Intelligence Hub (V9.3)
 
-[![Platform: React](https://img.shields.io/badge/Platform-React-blue.svg)](https://reactjs.org/)
+[![Platform: React 19](https://img.shields.io/badge/Platform-React_19-blue.svg)](https://reactjs.org/)
 [![Vite: Optimized](https://img.shields.io/badge/Vite-Optimized-646CFF.svg)](https://vitejs.dev/)
 [![Database: Supabase](https://img.shields.io/badge/Database-Supabase-3ECF8E.svg)](https://supabase.com/)
-[![Design: Tech--Noir](https://img.shields.io/badge/Design-Tech--Noir-0F172A.svg)](#)
 
-GABBAR is a high-fidelity anonymous reporting platform designed as a **cinematic command center** for campus intelligence. It combines absolute anonymity for operatives with granular control for administrators.
+GABBAR is a high-fidelity anonymous reporting platform designed as a **cinematic command center** for campus intelligence. Version 9.3 introduces massive UI/UX refinements focused on space optimization and operative progress tracking.
 
 ---
 
-## 🚀 Key Evolutionary Features (V9+)
+## 🚀 Key Evolutionary Features (V9.3)
+
+### 🖥️ COLLAPSIBLE COMMAND SIDEBAR
+Modernized layout with a toggleable sidebar system.
+- **Menu Toggle**: Increase display area for intelligence feeds by 30% with a single click.
+- **Fluid Transitions**: Zero-jitter grid animations for seamless workspace expansion.
+
+### 🎭 OPERATIVE ACHIEVEMENT SYSTEM
+Track your impact within the hub with the new **Achievement Hub**.
+- **Dynamic Badges**: Unlock badges based on active reporting and positive impact.
 
 ### 🕵️ /DEV ROOT TERMINAL
 A restricted, high-fidelity hacker-themed interface located at `/dev`. Designed for master operatives to oversee system integrity.
@@ -25,7 +33,6 @@ An industrial-grade management panel with:
 - **Signal Broadcasts**: Send encrypted mass notifications or targeted user messages.
 - **Operative Lockdown**: Granular **Ban/Unban** controls for user management.
 - **Intel Purging**: Ability to permanently delete compromised or irrelevant reports.
-- **Live Ledger**: Real-time monitoring of all campus intelligence.
 
 ---
 
@@ -38,7 +45,7 @@ An industrial-grade management panel with:
 - Immersive dark UI | Glassmorphism depth | Neon accent signaling (HSL)
 
 ### 🧩 Core Modules
-- **Left**: Command & Navigation
+- **Left**: Command & Navigation (Collapsible)
 - **Center**: Intelligence Feed (Real-time)
 - **Right**: Trends & System Highlights
 
@@ -57,7 +64,7 @@ GABBAR is designed with **Anonymity-First Architecture**:
 
 ## 🛠️ Stack Analysis
 
-- **Core**: React 18 (Hooks + Memoization)
+- **Core**: React 19 (Hooks + Memoization)
 - **Database**: Supabase (PostgreSQL + RLS Policies)
 - **Authentication**: Supabase Auth (GoTrue) + OAuth 2.0
 - **Styling**: Vanilla CSS (Global Tokens + Cinematic Keyframes)
@@ -85,4 +92,3 @@ npm run dev
 
 ## Project Vision
 GABBAR aims to be the gold standard for anonymous campus intelligence, providing a secure, high-fidelity platform for students and faculty to share critical information without fear of retaliation.
-
