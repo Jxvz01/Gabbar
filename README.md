@@ -38,16 +38,21 @@ An industrial-grade management panel with:
 
 ## 🏗️ System Architecture
 
-### ⚡ Data-Dense Interface
-- Zero wasted space | Structured dashboard layout | High signal-to-noise UI
+GABBAR V9.3 has been modularized for high-concurrency development and cleaner lifecycle management.
 
-### 🌌 Tech-Noir Aesthetic
-- Immersive dark UI | Glassmorphism depth | Neon accent signaling (HSL)
+### 📦 Component Architecture
+| Module | Purpose | Location |
+| :--- | :--- | :--- |
+| `AuthForm` | Unified student/admin identity uplink. | `src/components/AuthForm.jsx` |
+| `ReportCard` | High-fidelity intelligence log visualization. | `src/components/ReportCard.jsx` |
+| `AchievementHub` | Operative progression and badge tracking. | `src/components/AchievementHub.jsx` |
+| `SidePanel` | Trending intel and platform metric telemetry. | `src/components/SidePanel.jsx` |
+| `SystemBoot` | Cinematic system initialization sequence. | `src/components/SystemBoot.jsx` |
 
-### 🧩 Core Modules
-- **Left**: Command & Navigation (Collapsible)
-- **Center**: Intelligence Feed (Real-time)
-- **Right**: Trends & System Highlights
+### 🧩 Core Infrastructure
+- **Security Utilities**: `src/security.js` (JSDoc Documented)
+- **Tactical Helpers**: `src/utils.js` (Clipboard & Date formatting)
+- **Global Constants**: `src/constants.js` (Centralized business logic)
 
 ---
 
