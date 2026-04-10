@@ -9,8 +9,9 @@ import { supabase } from './supabase';
 // --- SYSTEM CONSTANTS ---
 // Centralized configuration for the Gabbar ecosystem
 // Core application categories and statuses used across all report-related components
-const CATEGORIES = ['Facilities', 'Harassment', 'Academics', 'Safety', 'Suggestions', 'Other'];
-const STATUSES = ['Under Review', 'Resolved', 'Pending'];
+import { Toast, SkeletonCard, Counter, AchievementHub, SystemBoot, SidePanel, AuthForm } from './components';
+import { CATEGORIES, STATUSES } from './constants';
+import { copyToClipboard, formatHubDate } from './utils';
 const isMobileDevice = typeof window !== 'undefined' && window.innerWidth <= 1024;
 
 // --- UTILS ---
@@ -30,90 +31,7 @@ const useToast = () => {
 
 // --- COMPONENTS ---
 
-const Toast = ({ title, msg, type }) => {
-  const icons = {
-    success: <CheckCircle size={20} color="var(--accent-emerald)" />,
-    error: <AlertTriangle size={20} color="#ef4444" />,
-    warning: <AlertTriangle size={20} color="#f59e0b" />,
-    info: <Shield size={20} color="var(--primary)" />
-  };
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, x: 50, scale: 0.9 }}
-      animate={{ opacity: 1, x: 0, scale: 1 }}
-      exit={{ opacity: 0, x: 20, scale: 0.95 }}
-      className={`toast-v30 ${type}`}
-    >
-      <div className="toast-icon-v30">{icons[type]}</div>
-      <div className="toast-content-v30">
-        <div className="toast-title-v30">{title}</div>
-        <div className="toast-msg-v30">{msg}</div>
-      </div>
-    </motion.div>
-  );
-};
-
-const SkeletonCard = () => (
-  <div className="skeleton-card-v30">
-    <div className="skeleton-line" style={{ width: '30%', marginTop: '30px' }}></div>
-    <div className="skeleton-line" style={{ width: '60%', height: '24px', margin: '20px' }}></div>
-    <div className="skeleton-line" style={{ width: '85%' }}></div>
-    <div className="skeleton-line" style={{ width: '70%' }}></div>
-    <div className="skeleton-line" style={{ width: '20%', marginTop: '40px' }}></div>
-  </div>
-);
-
-const Counter = ({ value, duration = 1.5 }) => {
-  const [count, setCount] = useState(0);
-
-  useEffect(() => {
-    let start = 0;
-    const end = parseInt(value);
-    if (start === end) return;
-
-    let totalMiliseconds = duration * 1000;
-    let incrementTime = (totalMiliseconds / end);
-
-    let timer = setInterval(() => {
-      start += 1;
-      setCount(start);
-      if (start === end) clearInterval(timer);
-    }, incrementTime);
-
-    return () => clearInterval(timer);
-  }, [value, duration]);
-
-  return <span>{count.toString().padStart(2, '0')}</span>;
-};
-
-const AchievementHub = ({ userReports, impactScore }) => {
-  const BADGES = [
-    { id: 'rookie', name: 'Rookie Operative', icon: <Zap size={20} />, criteria: 'First report submitted', check: userReports.length >= 1 },
-    { id: 'shield', name: 'Shield Bearer', icon: <Shield size={20} />, criteria: '5 reports resolved', check: userReports.filter(r => r.status === 'Resolved').length >= 5 },
-    { id: 'vox', name: 'Vox Populi', icon: <TrendingUp size={20} />, criteria: 'Log with 50+ upvotes', check: userReports.some(r => r.upvotes >= 50), type: 'vox' },
-    { id: 'sentinel', name: 'Data Sentinel', icon: <MessageCircle size={20} />, criteria: 'Impact Score > 200', check: impactScore >= 200, type: 'sentinel' },
-    { id: 'elite', name: 'Elite Specialist', icon: <Shield size={20} />, criteria: 'Impact Score > 500', check: impactScore >= 500 }
-  ];
-
-  return (
-    <div className="badge-grid-v31">
-      {BADGES.map(badge => (
-        <div key={badge.id} className={`achievement-card-v31 ${badge.check ? 'unlocked' : 'locked'} badge-${badge.type || 'default'}`}>
-          {badge.check && <div className="badge-status-glow-v31" />}
-          <div className="badge-icon-v31">{badge.icon}</div>
-          <div className="badge-name-v31">{badge.name}</div>
-          <div className="badge-criteria-v31">{badge.criteria}</div>
-          <div style={{ marginTop: 'auto', fontSize: '8px', fontWeight: '800', opacity: 0.6 }}>
-            {badge.check ? 'LINK_ESTABLISHED' : 'ENCRYPTED'}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-};
-
-// --- COMPONENTS ---
+// Components migrated to src/components/
 
 const LandingPage = ({ onJoin }) => {
   return (
@@ -406,62 +324,6 @@ const BottomNav = memo(({ activeTab, onTabChange }) => (
       </div>
     ))}
   </nav>
-));
-
-const SidePanel = memo(({ reports, topReports }) => (
-  <aside className="side-info-v7" style={{ width: '100%' }}>
-    <section className="side-sec-v7">
-      <h4 style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13px', color: '#fff', marginBottom: '24px' }}>
-        <TrendingUp size={16} color="var(--primary)" /> HIGH_DENSITY_INTEL
-      </h4>
-      <div className="v-stack" style={{ gap: '16px' }}>
-        {(topReports || []).map(r => (
-          <div
-            key={r.id}
-            className="side-preview-v18 v-stack"
-            style={{ gap: '8px', cursor: 'pointer', textAlign: 'left', alignItems: 'flex-start', width: '100%' }}
-          >
-            <div className="flex-v6" style={{ width: '100%', justifyContent: 'space-between', gap: '6px' }}>
-              <div style={{ color: 'var(--primary)', fontWeight: '800', fontSize: '10px' }}>#{r.id}</div>
-              <div className="badge-v7 status" style={{ margin: 0 }}>{r.category.toUpperCase()}</div>
-            </div>
-            <div style={{ fontSize: '14px', fontWeight: '800', color: '#fff', lineHeight: '1.4' }}>{r.title}</div>
-            <div className="flex-v6" style={{ gap: '10px', marginTop: '4px', opacity: 0.6 }}>
-              <ArrowRight size={12} /> <span style={{ fontSize: '11px', fontWeight: '700' }}>{r.upvotes} UPVOTES</span>
-            </div>
-          </div>
-        ))}
-        {(topReports || []).length === 0 && <p style={{ fontSize: '12px', color: 'var(--text-dim)', textAlign: 'center', padding: '20px' }}>Awaiting intel logs...</p>}
-      </div>
-    </section>
-
-    <section className="side-sec-v7" style={{ marginTop: '48px' }}>
-      <h4 style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13px', color: '#fff', marginBottom: '24px' }}>
-        <Activity size={16} color="var(--accent-purple)" /> PLATFORM_METRICS
-      </h4>
-      <div className="v-stack" style={{ gap: '12px' }}>
-        {[
-          { label: 'Active Channels', value: '01', color: 'var(--primary)' },
-          { label: 'Total Intel Logs', value: (reports || []).length.toString().padStart(2, '0'), color: 'var(--accent-purple)' },
-          { label: 'Secure Commits', value: '335+', color: 'var(--primary)' },
-          { label: 'Platform Status', value: 'Secure', color: 'var(--accent-emerald)' }
-        ].map((m, i) => (
-          <div key={i} className="flex-v6" style={{ width: '100%', justifyContent: 'space-between', padding: '16px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)', borderRadius: '12px' }}>
-            <span style={{ fontSize: '12px', fontWeight: '800', opacity: 0.5 }}>{m.label.toUpperCase()}</span>
-            <span style={{ fontSize: '14px', fontWeight: '900', color: m.color }}>{m.value}</span>
-          </div>
-        ))}
-      </div>
-    </section>
-
-    <section className="side-sec-v7" style={{ marginTop: '48px' }}>
-      <div className="flex-v6" style={{ flexWrap: 'wrap', justifyContent: 'flex-start', gap: '8px', opacity: 0.8 }}>
-        {CATEGORIES.map(c => (
-          <span key={c} className={`badge-v7 border-${c}`} style={{ fontSize: '10px', padding: '6px 14px', borderRadius: '6px' }}>{c.toUpperCase()}</span>
-        ))}
-      </div>
-    </section>
-  </aside>
 ));
 
 const DevPanel = memo(({ reports, users, onDelete, onStatusChange, onBack, onSendNotification, onUpdateBanStatus }) => {
@@ -906,51 +768,6 @@ const AuthPage = memo(({ initialMode = 'login', onAuthSuccess, onGoogleAuth, onB
             <p className="auth-toggle-v4" onClick={() => setIsVerifying(false)} style={{ marginTop: '20px', cursor: 'pointer', fontSize: '12px' }}>← Back to credentials</p>
           </form>
         ) : (
-          <form onSubmit={handleSubmit} className="auth-f">
-            <div className="input-group-v4">
-              <label className="label-v4" style={{ color: 'var(--accent-purple)', fontWeight: '800' }}>ACCESS ROLE</label>
-              <select className="select-v4" value={role} onChange={(e) => setRole(e.target.value)}>
-                <option value="Student">STUDENT</option>
-                <option value="Professor">PROFESSOR</option>
-                <option value="Admin">ADMINISTRATOR</option>
-              </select>
-            </div>
-
-            <div style={{ width: '100%', marginBottom: '24px' }}>
-              <input
-                className={`input-v3 ${authError ? 'input-error-v27' : ''}`}
-                type="email"
-                placeholder="CAMPUS EMAIL (@vvce.ac.in)"
-                value={email}
-                onChange={(e) => { setEmail(e.target.value); setAuthError(''); }}
-                required
-              />
-              {authError && <div className="error-msg-v27 anim-fade-in">{authError}</div>}
-            </div>
-
-            <input className="input-v3" name="password" type="password" placeholder="ENCRYPTION KEY" required />
-
-            {mode === 'signup' && (
-              <div className="v-stack" style={{ gap: '16px', width: '100%', marginBottom: '24px' }}>
-                <input
-                  className="input-v3"
-                  type="text"
-                  placeholder="CAMPUS ID / ROLL NO"
-                  value={campusId}
-                  onChange={(e) => setCampusId(e.target.value)}
-                  required
-                />
-                <input
-                  className="input-v3"
-                  type="text"
-                  placeholder="ANONYMOUS CODENAME (e.g. ShadowFox)"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  required
-                />
-              </div>
-            )}
-
             <button type="submit" className="btn-main primary full hover-glow">
               {mode === 'login' ? 'Sign-In' : 'Sign-Up'}
             </button>
@@ -1071,6 +888,8 @@ const Dashboard = memo(({ reports, role, onLogout, onVote, onAddReport, onAddCom
                   setActiveTab(item.id);
                   if (isMobile) setIsSidebarVisible(false); // Auto-close on mobile
                 }}
+                title={`Switch to ${item.label} view`}
+                aria-label={`Navigate to ${item.label}`}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                   {item.icon} <span>{item.label}</span>
@@ -1095,7 +914,9 @@ const Dashboard = memo(({ reports, role, onLogout, onVote, onAddReport, onAddCom
                 <button 
                   className="menu-toggle-v33" 
                   onClick={() => setIsSidebarVisible(!isSidebarVisible)}
-                  title={isSidebarVisible ? "Collapse Sidebar" : "Expand Interface"}
+                  title={isSidebarVisible ? "Collapse Sidebar (Full Content View)" : "Expand Navigation Menu"}
+                  aria-expanded={isSidebarVisible}
+                  aria-label="Toggle navigation sidebar"
                 >
                   <Menu size={20} />
                 </button>
@@ -1434,153 +1255,7 @@ const Dashboard = memo(({ reports, role, onLogout, onVote, onAddReport, onAddCom
   );
 });
 
-const ReportCard = memo(({ report, onVote, role, activeVote, onAddComment, onDeleteReport, index, currUsername, currentUserEmail }) => {
-
-  const [showComments, setShowComments] = useState(false);
-  const [commentText, setCommentText] = useState('');
-  const [errorMsg, setErrorMsg] = useState('');
-
-  const isTrending = report.upvotes > 70;
-  const isPriority = report.category === 'Safety' || report.category === 'Harassment';
-  const isOwner = (report.user_id && report.author_email === currentUserEmail) || (report.author_email && report.author_email === currentUserEmail);
-
-  const submitComment = (e) => {
-    e.preventDefault();
-    const cleanText = sanitize(commentText);
-    if (!cleanText.trim()) return;
-
-    const limit = checkRateLimit(`USER_${role}`, 'comment');
-    if (!limit.ok) {
-      setErrorMsg(`Wait ${limit.remaining}s before new comment.`);
-      setTimeout(() => setErrorMsg(''), 3000);
-      return;
-    }
-
-    onAddComment(report.id, cleanText, currUsername || 'ANON_OPERATIVE');
-    setCommentText('');
-  };
-
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 30 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: (index % 3) * 0.1 }}
-      viewport={{ once: true, margin: '-50px' }}
-      whileHover={{ y: -12, scale: 1.01, transition: { duration: 0.2 } }}
-      className={`card-v18 border-${report.category} ${index % 2 === 0 ? '' : 'card-alt-v18'}`}
-      style={{ marginBottom: '32px' }}
-    >
-      <div className="v-stack" style={{ gap: '20px', alignItems: 'stretch' }}>
-        <div className="flex-v6" style={{ justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <div className="v-stack" style={{ gap: '8px', alignItems: 'flex-start', flex: 1 }}>
-            <div className="flex-v6" style={{ gap: '8px', justifyContent: 'flex-start', flexDirection: 'row', flexWrap: 'wrap' }}>
-              <span className="badge-v7 category" style={{ background: 'rgba(255,255,255,0.05)', fontSize: '10px' }}>{report.category.toUpperCase()}</span>
-              {isPriority && <span className="trigger-v18 trigger-priority"><AlertTriangle size={12} /> Priority</span>}
-              {isTrending && <span className="trigger-v18 trigger-trending"><TrendingUp size={12} /> Trending</span>}
-            </div>
-            <h3 className="h-title" style={{ fontSize: '20px', fontWeight: '800', letterSpacing: '-0.01em', color: '#fff', textAlign: 'left' }}>{report.title}</h3>
-          </div>
-
-          <div className="vote-group-v8">
-            <button
-              className={`vote-btn-v8 ${activeVote === 1 ? 'up active' : ''}`}
-              onClick={() => onVote(report.id, 1)}
-            >
-              <ChevronUp size={22} strokeWidth={3} />
-            </button>
-            <span className="vote-count-v8">{report.upvotes}</span>
-            <button
-              className={`vote-btn-v8 ${activeVote === -1 ? 'down active' : ''}`}
-              onClick={() => onVote(report.id, -1)}
-            >
-              <ChevronDown size={22} strokeWidth={3} />
-            </button>
-          </div>
-        </div>
-
-        <p style={{ color: 'var(--text-secondary)', fontSize: '15px', lineHeight: '1.6', opacity: 0.9, textAlign: 'left' }}>
-          {report.content}
-        </p>
-
-        {report.image_url && (
-          <div className="report-image-v30" style={{ width: '100%', borderRadius: '16px', overflow: 'hidden', border: '1px solid var(--glass-border)' }}>
-            <img src={report.image_url} alt="Intel Media" style={{ width: '100%', height: 'auto', display: 'block' }} />
-          </div>
-        )}
-
-
-        <div className="footer-v6 flex-v6" style={{ borderTop: '1px solid var(--glass-border)', paddingTop: '24px', justifyContent: 'space-between' }}>
-          <div className="flex-v6" style={{ gap: '20px' }}>
-            <button
-              className="flex-v6"
-              style={{ fontSize: '12px', color: 'var(--text-dim)', gap: '8px', cursor: 'pointer', background: 'none', border: 'none', fontWeight: '700' }}
-              onClick={() => setShowComments(!showComments)}
-            >
-              <MessageCircle size={16} /> {report.comments?.length || 0} Comments
-            </button>
-            <div style={{ fontSize: '11px', color: 'var(--text-secondary)', opacity: 0.5 }}>
-              {new Date(report.timestamp).toLocaleDateString()}
-            </div>
-          </div>
-
-          {(role === 'Admin' || role === 'Professor') && (
-            <button className="btn-v6 secondary" style={{ padding: '8px 16px', fontSize: '10px', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '800' }}><CheckCircle size={14} /> VERIFY</button>
-          )}
-
-          {(role === 'Admin' || isOwner) && (
-            <button
-              className="action-btn-v14 danger"
-              style={{ padding: '8px 16px', color: '#ef4444' }}
-              onClick={() => onDeleteReport && onDeleteReport(report.id)}
-            >
-              DELETE_LOG
-            </button>
-
-          )}
-        </div>
-
-        <AnimatePresence>
-          {showComments && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="comment-thread-v11 overflow-hidden"
-              style={{ marginTop: '24px', borderTop: '1px solid var(--glass-border)', paddingTop: '24px' }}
-            >
-              {(report.comments || []).map(c => (
-                <div key={c.id} className="comment-v11">
-                  <div className="c-head" style={{ display: 'flex', gap: '8px', marginBottom: '8px', fontSize: '11px', fontWeight: '800' }}>
-                    <span style={{ color: 'var(--primary)' }}>{c.user}</span>
-                    <span style={{ color: 'var(--text-dim)', opacity: 0.5 }}>· {new Date(c.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                  </div>
-                  <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>{c.text}</p>
-                </div>
-              ))}
-
-              <form onSubmit={submitComment} className="comment-input-group-v11">
-                <input
-                  className="comment-input-v11"
-                  placeholder="Add an anonymous comment..."
-                  value={commentText}
-                  onChange={e => setCommentText(e.target.value)}
-                />
-                <button type="submit" className="comment-btn-v11"><Send size={14} /></button>
-              </form>
-
-              {errorMsg && (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-v6" style={{ color: '#ef4444', fontSize: '10px', fontWeight: '800', marginTop: '12px', gap: '8px', justifyContent: 'flex-start' }}>
-                  <AlertTriangle size={12} /> {errorMsg.toUpperCase()}
-                </motion.div>
-              )}
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-    </motion.div>
-  );
-});
+// ReportCard migrated to src/components/
 
 const SystemBoot = ({ onComplete }) => {
   const [percent, setPercent] = useState(0);

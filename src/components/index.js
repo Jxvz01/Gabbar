@@ -5,3 +5,4 @@ export * from './AchievementHub';
 export * from './SystemBoot';
 export * from './SidePanel';
 export * from './AuthForm';
+export * from './ReportCard';
