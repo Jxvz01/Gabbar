@@ -1636,6 +1636,18 @@ html {
   border: 1px solid var(--primary);
 }
 
+.nav-item-v7.active {
+  background: rgba(59, 130, 246, 0.1);
+  color: var(--primary);
+  border-right: 2px solid var(--primary);
+  animation: nav-pulse-v33 4s infinite ease-in-out;
+}
+
+@keyframes nav-pulse-v33 {
+  0%, 100% { background: rgba(59, 130, 246, 0.1); }
+  50% { background: rgba(59, 130, 246, 0.18); }
+}
+
 .btn-admin-v15 {
   background: transparent;
   border: none;
