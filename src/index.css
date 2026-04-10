@@ -1898,7 +1898,7 @@ html {
 }
 
 .feed-card-v7:hover {
-  transform: translateY(-4px);
+  transform: translateY(-4px) scale(1.01);
   border-color: rgba(255, 255, 255, 0.15);
   box-shadow: var(--shadow-lg);
   background: rgba(255, 255, 255, 0.04);
