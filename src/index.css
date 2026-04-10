@@ -1507,6 +1507,56 @@ html {
   height: 100dvh;
   background: var(--bg-primary);
   overflow: hidden;
+  transition: grid-template-columns 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dash-layout-v7.sidebar-hidden {
+  grid-template-columns: 0px 1fr 400px;
+}
+
+.menu-toggle-v33 {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--glass-border);
+  color: var(--text-secondary);
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.menu-toggle-v33:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  border-color: var(--primary);
+  transform: scale(1.05);
+}
+
+.side-nav-v7 {
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease, padding 0.4s ease;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.sidebar-hidden .side-nav-v7 {
+  transform: translateX(-100%);
+  opacity: 0;
+  padding-left: 0;
+  padding-right: 0;
+  pointer-events: none;
+}
+
+.sidebar-hidden .main-feed-v7 {
+  border-left: 1px solid var(--glass-border);
+}
+
+@media (max-width: 1024px) {
+  .dash-layout-v7 {
+    grid-template-columns: 0px 1fr 0px; /* Collapse side info too on tablet */
+  }
 }
 
 @media (max-width: 640px) {
