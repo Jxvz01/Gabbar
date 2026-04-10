@@ -13,7 +13,105 @@ const CATEGORIES = ['Facilities', 'Harassment', 'Academics', 'Safety', 'Suggesti
 const STATUSES = ['Under Review', 'Resolved', 'Pending'];
 const isMobileDevice = typeof window !== 'undefined' && window.innerWidth <= 1024;
 
+// --- UTILS ---
+const useToast = () => {
+  const [toasts, setToasts] = useState([]);
+  
+  const showToast = useCallback((title, msg, type = 'info') => {
+    const id = Date.now();
+    setToasts(prev => [...prev, { id, title, msg, type }]);
+    setTimeout(() => {
+      setToasts(prev => prev.filter(t => t.id !== id));
+    }, 4000);
+  }, []);
+
+  return { toasts, showToast };
+};
+
 // --- COMPONENTS ---
+
+const Toast = ({ title, msg, type }) => {
+  const icons = {
+    success: <CheckCircle size={20} color="var(--accent-emerald)" />,
+    error: <AlertTriangle size={20} color="#ef4444" />,
+    warning: <AlertTriangle size={20} color="#f59e0b" />,
+    info: <Shield size={20} color="var(--primary)" />
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: 50, scale: 0.9 }}
+      animate={{ opacity: 1, x: 0, scale: 1 }}
+      exit={{ opacity: 0, x: 20, scale: 0.95 }}
+      className={`toast-v30 ${type}`}
+    >
+      <div className="toast-icon-v30">{icons[type]}</div>
+      <div className="toast-content-v30">
+        <div className="toast-title-v30">{title}</div>
+        <div className="toast-msg-v30">{msg}</div>
+      </div>
+    </motion.div>
+  );
+};
+
+const SkeletonCard = () => (
+  <div className="skeleton-card-v30">
+    <div className="skeleton-line" style={{ width: '30%', marginTop: '30px' }}></div>
+    <div className="skeleton-line" style={{ width: '60%', height: '24px', margin: '20px' }}></div>
+    <div className="skeleton-line" style={{ width: '85%' }}></div>
+    <div className="skeleton-line" style={{ width: '70%' }}></div>
+    <div className="skeleton-line" style={{ width: '20%', marginTop: '40px' }}></div>
+  </div>
+);
+
+const Counter = ({ value, duration = 1.5 }) => {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    let start = 0;
+    const end = parseInt(value);
+    if (start === end) return;
+
+    let totalMiliseconds = duration * 1000;
+    let incrementTime = (totalMiliseconds / end);
+
+    let timer = setInterval(() => {
+      start += 1;
+      setCount(start);
+      if (start === end) clearInterval(timer);
+    }, incrementTime);
+
+    return () => clearInterval(timer);
+  }, [value, duration]);
+
+  return <span>{count.toString().padStart(2, '0')}</span>;
+};
+
+const AchievementHub = ({ userReports, impactScore }) => {
+  const BADGES = [
+    { id: 'rookie', name: 'Rookie Operative', icon: <Zap size={20} />, criteria: 'First report submitted', check: userReports.length >= 1 },
+    { id: 'shield', name: 'Shield Bearer', icon: <Shield size={20} />, criteria: '5 reports resolved', check: userReports.filter(r => r.status === 'Resolved').length >= 5 },
+    { id: 'vox', name: 'Vox Populi', icon: <TrendingUp size={20} />, criteria: 'Log with 50+ upvotes', check: userReports.some(r => r.upvotes >= 50), type: 'vox' },
+    { id: 'sentinel', name: 'Data Sentinel', icon: <MessageCircle size={20} />, criteria: 'Impact Score > 200', check: impactScore >= 200, type: 'sentinel' },
+    { id: 'elite', name: 'Elite Specialist', icon: <Shield size={20} />, criteria: 'Impact Score > 500', check: impactScore >= 500 }
+  ];
+
+  return (
+    <div className="badge-grid-v31">
+      {BADGES.map(badge => (
+        <div key={badge.id} className={`achievement-card-v31 ${badge.check ? 'unlocked' : 'locked'} badge-${badge.type || 'default'}`}>
+          {badge.check && <div className="badge-status-glow-v31" />}
+          <div className="badge-icon-v31">{badge.icon}</div>
+          <div className="badge-name-v31">{badge.name}</div>
+          <div className="badge-criteria-v31">{badge.criteria}</div>
+          <div style={{ marginTop: 'auto', fontSize: '8px', fontWeight: '800', opacity: 0.6 }}>
+            {badge.check ? 'LINK_ESTABLISHED' : 'ENCRYPTED'}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
 
 // --- COMPONENTS ---
 
@@ -378,7 +476,7 @@ const DevPanel = memo(({ reports, users, onDelete, onStatusChange, onBack, onSen
     await onSendNotification(notifForm.title, notifForm.content, targetUserId);
     setNotifForm({ title: '', content: '', target: 'Everyone' });
     setIsSending(false);
-    alert("BROADCAST_SENT: Message transmitted across all encrypted nodes.");
+    // showToast replaced alert in parent
   };
 
   return (
@@ -583,7 +681,7 @@ const AdminProfileView = memo(({ reports, onStatusChange }) => {
           { l: 'CRITICAL_RISK', v: reports.filter(r => r.upvotes > 70).length }
         ].map((stat, i) => (
           <div key={i} className="admin-stat-v15">
-            <div className="val">{stat.v < 10 && '0'}{stat.v}</div>
+            <div className="val"><Counter value={stat.v} /></div>
             <div className="lab">{stat.l}</div>
           </div>
         ))}
@@ -885,9 +983,12 @@ const AuthPage = memo(({ initialMode = 'login', onAuthSuccess, onGoogleAuth, onB
   );
 });
 
-const Dashboard = memo(({ reports, role, onLogout, onVote, onAddReport, onAddComment, onStatusChange, onDeleteReport, userVotes, winWidth, currentUser, onUpdateUsername, currentUserEmail, notifications }) => {
+const Dashboard = memo(({ reports, role, onLogout, onVote, onAddReport, onAddComment, onStatusChange, onDeleteReport, userVotes, winWidth, currentUser, onUpdateUsername, currentUserEmail, notifications, isLoading, showToast }) => {
   const navigate = useNavigate();
   const location = useLocation();
+
+  const [searchTerm, setSearchTerm] = useState('');
+  const [activeCategory, setActiveCategory] = useState('All');
 
   // Map pathname to activeTab
   const activeTab = useMemo(() => {
@@ -916,6 +1017,15 @@ const Dashboard = memo(({ reports, role, onLogout, onVote, onAddReport, onAddCom
   const topReports = useMemo(() => {
     return [...reports].sort((a, b) => b.upvotes - a.upvotes).slice(0, 3);
   }, [reports]);
+
+  const filteredReports = useMemo(() => {
+    return reports.filter(r => {
+      const matchSearch = r.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          r.content.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchCategory = activeCategory === 'All' || r.category === activeCategory;
+      return matchSearch && matchCategory;
+    });
+  }, [reports, searchTerm, activeCategory]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -982,20 +1092,65 @@ const Dashboard = memo(({ reports, role, onLogout, onVote, onAddReport, onAddCom
             </div>
             <div className="flex-v6" style={{ gap: '8px', flexDirection: 'row', width: 'auto' }}>
               <div className="badge-v7 status" style={{ fontSize: '9px' }}>#{role.toUpperCase()}</div>
+              {activeTab === 'feed' && (
+                <button 
+                  className="refresh-btn-v32" 
+                  onClick={() => {
+                    fetchReports();
+                    showToast('INTEL_SYNC', 'Synchronizing with encrypted nodes...', 'info');
+                  }}
+                  title="Refresh Intel"
+                >
+                  <Activity size={14} />
+                </button>
+              )}
             </div>
           </header>
 
+          {activeTab === 'feed' && (
+            <div className="feed-controls-v30 anim-fade-up" style={{ marginBottom: '32px', display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+              <input 
+                className="input-v9" 
+                placeholder="SEARCH_INTEL_LOGS..." 
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                style={{ flex: 1, minWidth: '200px', marginBottom: 0 }}
+              />
+              <div className="flex-v6" style={{ width: 'auto', gap: '8px', overflowX: 'auto', paddingBottom: '4px', justifyContent: 'flex-start' }}>
+                <button 
+                  onClick={() => setActiveCategory('All')}
+                  className={`badge-v7 ${activeCategory === 'All' ? 'active-v30' : ''}`}
+                  style={{ cursor: 'pointer', background: activeCategory === 'All' ? 'var(--primary)' : 'rgba(255,255,255,0.05)', border: 'none', padding: '8px 16px' }}
+                >ALL</button>
+                {CATEGORIES.map(c => (
+                  <button 
+                    key={c}
+                    onClick={() => setActiveCategory(c)}
+                    className={`badge-v7 ${activeCategory === c ? 'active-v30' : ''}`}
+                    style={{ cursor: 'pointer', background: activeCategory === c ? 'var(--primary)' : 'rgba(255,255,255,0.05)', border: 'none', padding: '8px 16px' }}
+                  >{c.toUpperCase()}</button>
+                ))}
+              </div>
+            </div>
+          )}
 
-          {activeTab === 'feed' && (reports || []).length === 0 && (
+          {activeTab === 'feed' && isLoading && (
+            <div className="v-stack" style={{ width: '100%', gap: '0' }}>
+              {[...Array(3)].map((_, i) => <SkeletonCard key={i} />)}
+            </div>
+          )}
+
+
+          {activeTab === 'feed' && !isLoading && filteredReports.length === 0 && (
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="empty-hub-v18">
               <div className="empty-icon-v18"><AlertTriangle size={80} strokeWidth={1} /></div>
               <h2 className="h-title" style={{ fontSize: '28px', marginBottom: '16px' }}>Zero Intelligence Logs Indexed</h2>
-              <p className="h-sub" style={{ fontSize: '15px', maxWidth: '400px', marginBottom: '40px' }}>The hub is currently clear. Be the first operative to raise an industrial concern or suggestion.</p>
-              <button className="btn-v3 primary" onClick={() => setIsFormOpen(true)} style={{ padding: '18px 40px' }}><Plus size={20} /> Initialize First Report</button>
+              <p className="h-sub" style={{ fontSize: '15px', maxWidth: '400px', marginBottom: '40px' }}>{searchTerm ? "No logs match your search criteria." : "The hub is currently clear. Be the first operative to raise an industrial concern."}</p>
+              {!searchTerm && <button className="btn-v3 primary" onClick={() => setIsFormOpen(true)} style={{ padding: '18px 40px' }}><Plus size={20} /> Initialize First Report</button>}
             </motion.div>
           )}
 
-          {activeTab === 'feed' && (reports || []).map((r, i) => (
+          {activeTab === 'feed' && !isLoading && filteredReports.map((r, i) => (
             <ReportCard
               key={r.id}
               report={r}
@@ -1061,7 +1216,7 @@ const Dashboard = memo(({ reports, role, onLogout, onVote, onAddReport, onAddCom
                                   onUpdateUsername(newUsername);
                                   setIsEditingUsername(false);
                                 } else {
-                                  alert("SYSTEM_REJECT: Username must be minimum 3 alpha-numeric characters.");
+                                  showToast('SYSTEM_REJECT', 'Username must be minimum 3 alpha-numeric characters.', 'error');
                                 }
                               }}
                               className="btn-v15 resolve"
@@ -1113,7 +1268,7 @@ const Dashboard = memo(({ reports, role, onLogout, onVote, onAddReport, onAddCom
                   ].map((stat, i) => (
                     <div key={i} className="stat-mini-v10" style={{ position: 'relative', overflow: 'hidden' }}>
                       <div style={{ color: 'var(--primary)', opacity: 0.6, marginBottom: '16px' }}>{stat.i}</div>
-                      <span className="val">{stat.v}</span>
+                      <span className="val"><Counter value={stat.v} /></span>
                       <span className="lab">{stat.l}</span>
                     </div>
                   ))}
@@ -1150,6 +1305,13 @@ const Dashboard = memo(({ reports, role, onLogout, onVote, onAddReport, onAddCom
                     )}
 
                   </div>
+                </section>
+
+                <section className="activity-sec-v10">
+                  <div className="sec-header-v10">
+                    <Shield size={12} /> OPERATIVE_ACHIEVEMENTS <div className="h-line"></div>
+                  </div>
+                  <AchievementHub userReports={userReports} impactScore={(userReports.filter(r => r.status === 'Resolved').length * 100) + (userReports.length * 15)} />
                 </section>
 
                 <section className="activity-sec-v10">
@@ -1218,7 +1380,19 @@ const Dashboard = memo(({ reports, role, onLogout, onVote, onAddReport, onAddCom
                 </select>
                 <textarea className="input-v9" name="content" placeholder="DESCRIBE THE INTEL IN DETAIL..." rows="5" required disabled={subState !== 'idle'}></textarea>
 
-                <button type="submit" className="btn-gradient-v9" disabled={subState !== 'idle'}>
+                <div className="input-field-v15" style={{ marginTop: '16px' }}>
+                  <label style={{ fontSize: '10px', color: 'var(--primary)', fontWeight: '800', marginBottom: '8px', display: 'block' }}>ATTACH_INTEL_MEDIA (OPTIONAL)</label>
+                  <input 
+                    type="file" 
+                    name="image" 
+                    accept="image/*" 
+                    className="input-v9" 
+                    style={{ padding: '12px', fontSize: '12px' }}
+                    disabled={subState !== 'idle'}
+                  />
+                </div>
+
+                <button type="submit" className="btn-gradient-v9" disabled={subState !== 'idle'} style={{ marginTop: '24px' }}>
                   {subState === 'idle' && "Submit Report"}
                   {subState === 'loading' && <span className="flex-v6" style={{ gap: '12px' }}><Loader2 className="anim-spin" size={18} /> Submitting...</span>}
                   {subState === 'success' && "Intel Logged"}
@@ -1313,6 +1487,12 @@ const ReportCard = memo(({ report, onVote, role, activeVote, onAddComment, onDel
         <p style={{ color: 'var(--text-secondary)', fontSize: '15px', lineHeight: '1.6', opacity: 0.9, textAlign: 'left' }}>
           {report.content}
         </p>
+
+        {report.image_url && (
+          <div className="report-image-v30" style={{ width: '100%', borderRadius: '16px', overflow: 'hidden', border: '1px solid var(--glass-border)' }}>
+            <img src={report.image_url} alt="Intel Media" style={{ width: '100%', height: 'auto', display: 'block' }} />
+          </div>
+        )}
 
 
         <div className="footer-v6 flex-v6" style={{ borderTop: '1px solid var(--glass-border)', paddingTop: '24px', justifyContent: 'space-between' }}>
@@ -1427,6 +1607,8 @@ const App = () => {
   const location = useLocation();
 
   const [isBooting, setIsBooting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const { toasts, showToast } = useToast();
   const [userRole, setUserRole] = useState('Student');
   const [reports, setReports] = useState([]);
   const [nextView, setNextView] = useState(null);
@@ -1511,9 +1693,11 @@ const App = () => {
 
     if (error) {
       console.error('Error fetching reports:', error);
+      showToast('SYSTEM_ERROR', 'Failed to retrieve intelligence logs.', 'error');
     } else {
       setReports(data || []);
     }
+    setIsLoading(false);
   };
 
   const fetchProfile = async (userId) => {
@@ -1596,6 +1780,29 @@ const App = () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return;
 
+    const file = e.target.image.files[0];
+    let imageUrl = null;
+
+    if (file) {
+      // METADATA_STRIPPING_PROTOCOL: Pre-flight check
+      const fileName = `intel_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('intel-media')
+        .upload(fileName, file);
+
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        showToast('STRAPPING_ERROR', 'Media transmission failed.', 'error');
+        return;
+      }
+      
+      const { data: { publicUrl } } = supabase.storage
+        .from('intel-media')
+        .getPublicUrl(fileName);
+      
+      imageUrl = publicUrl;
+    }
+
     const newReport = {
       title: sanitize(e.target.title.value),
       category: e.target.category.value,
@@ -1606,19 +1813,23 @@ const App = () => {
       upvotes: 0,
       status: 'Pending',
       timestamp: new Date().toISOString(),
-      comments: []
+      comments: [],
+      image_url: imageUrl
     };
 
     const { error } = await supabase
       .from('reports')
       .insert([newReport]);
 
-    if (error) console.error('Error adding report:', error);
-  }, [userRole, currentUser.username]);
+    if (error) {
+      console.error('Error adding report:', error);
+      showToast('SYSTEM_ERROR', 'Failed to anchor intelligence log.', 'error');
+    } else {
+      showToast('INTEL_LOGGED', 'Signal transmitted securely.', 'success');
+    }
+  }, [userRole, currentUser.username, showToast]);
 
   const handleVote = useCallback(async (reportId, type) => {
-    // For simplicity, we'll just update the upvotes count.
-    // In a production app, you'd want a separate votes table to prevent double voting.
     const report = reports.find(r => r.id === reportId);
     if (!report) return;
 
@@ -1677,8 +1888,8 @@ const App = () => {
         redirectTo: window.location.origin
       }
     });
-    if (error) alert("GOOGLE_AUTH_ERROR: " + error.message);
-  }, []);
+    if (error) showToast('GOOGLE_AUTH_ERROR', error.message, 'error');
+  }, [showToast]);
 
   const handleUpdateUsername = useCallback(async (newUsername) => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -1836,6 +2047,8 @@ const App = () => {
             <Dashboard
               reports={reports}
               role={userRole}
+              isLoading={isLoading}
+              showToast={showToast}
               onLogout={handleLogout}
               onVote={handleVote}
               onAddReport={addReport}
@@ -1854,6 +2067,8 @@ const App = () => {
             <Dashboard
               reports={reports}
               role={userRole}
+              isLoading={isLoading}
+              showToast={showToast}
               onLogout={handleLogout}
               onVote={handleVote}
               onAddReport={addReport}
@@ -1872,6 +2087,8 @@ const App = () => {
             <Dashboard
               reports={reports}
               role={userRole}
+              isLoading={isLoading}
+              showToast={showToast}
               onLogout={handleLogout}
               onVote={handleVote}
               onAddReport={addReport}
@@ -1911,6 +2128,28 @@ const App = () => {
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       )}
+
+      <div className="toast-container-v30">
+        <AnimatePresence>
+          {toasts.map(toast => (
+            <Toast key={toast.id} {...toast} />
+          ))}
+        </AnimatePresence>
+      </div>
+
+      <AnimatePresence>
+        {winWidth > 0 && typeof window !== 'undefined' && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            className="back-to-top-v32"
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          >
+            <ChevronUp size={24} />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
