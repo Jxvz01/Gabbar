@@ -52,6 +52,11 @@ export const ReportCard = memo(({ report, onVote, role, activeVote, onAddComment
                   if (ok) showToast('LOG_COPIED', `Intel ID #${report.id.slice(0,8)}... secure on clipboard.`, 'info');
                 }}
               >#{report.id?.toString().slice(0, 8).toUpperCase()}</span>
+              {report.institution_verified && (
+                <span className="badge-v7" style={{ background: 'rgba(16, 185, 129, 0.1)', color: 'var(--accent-emerald)', border: 'none', fontSize: '9px', fontWeight: '900' }}>
+                  <Shield size={10} style={{ marginRight: '4px' }} /> INST_VERIFIED
+                </span>
+              )}
               <span className="badge-v7 category" style={{ background: 'rgba(255,255,255,0.05)', fontSize: '10px' }}>{report.category.toUpperCase()}</span>
               {isPriority && <span className="trigger-v18 trigger-priority"><AlertTriangle size={12} /> Priority</span>}
               {isTrending && <span className="trigger-v18 trigger-trending"><TrendingIcon size={12} /> Trending</span>}
