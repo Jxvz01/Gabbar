@@ -7,6 +7,11 @@ export const DEV_WHITELIST = ['thejxxuu@gmail.com', 'jeevanh259@gmail.com'];
 // --- V17 SECURITY SENTINEL ---
 // Multi-layered security protocols for the GABBAR Hub
 
+/**
+ * Sanitizes input string to prevent XSS attacks within the hub.
+ * @param {string} input - The raw input text.
+ * @returns {string} - The sanitized text with all HTML stripped.
+ */
 export const sanitize = (input) => {
   if (typeof input !== 'string') return input;
   return xss(input, {
@@ -16,6 +21,11 @@ export const sanitize = (input) => {
   });
 };
 
+/**
+ * Validates if the provided email belongs to the permitted campus domain.
+ * @param {string} email - The email address to validate.
+ * @returns {boolean} - True if email is valid or in developer whitelist.
+ */
 export const isValidCollegeEmail = (email) => {
   if (!email || typeof email !== 'string') return false;
   const lower = email.toLowerCase();
@@ -34,6 +44,12 @@ export const verifyCredential = async (password, hashed) => {
 // --- RATE LIMITING PROTOCOL ---
 const submissionHistory = new Map();
 
+/**
+ * Enforces rate limiting on repetitive operative actions.
+ * @param {string} userId - Unique identifier for the user.
+ * @param {string} type - Action type ('report', 'comment', 'vote').
+ * @returns {object} - Status object with {ok, remaining}.
+ */
 export const checkRateLimit = (userId, type = 'report') => {
   const now = Date.now();
   const userData = submissionHistory.get(userId) || {};
@@ -55,6 +71,12 @@ export const checkRateLimit = (userId, type = 'report') => {
 };
 
 // --- RBAC ACCESS CONTROL ---
+/**
+ * Verifies if the operative's role has permission for a specific HUB action.
+ * @param {string} role - Operative rank (Student, Professor, Admin).
+ * @param {string} action - The requested capability.
+ * @returns {boolean}
+ */
 export const canPerformAction = (role, action) => {
   const PERMISSIONS = {
     'Admin': ['view_all', 'manage_status', 'dismiss_report', 'view_admin_dash'],
@@ -67,6 +89,12 @@ export const canPerformAction = (role, action) => {
 };
 
 // --- DATA PRIVACY LAYER ---
+/**
+ * Strips PII from intelligence logs before transmission to the public ledger.
+ * @param {object} report - The raw intelligence data.
+ * @param {string} username - Optional custom operative handle.
+ * @returns {object} - Anonymized report safe for broadcast.
+ */
 export const anonymizeReport = (report, username) => {
   // Ensure NO PI (Personally Identifiable Information) ever reaches the report feed
   const { userId, ip, email, ...safeData } = report;
