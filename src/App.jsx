@@ -998,6 +998,7 @@ const Dashboard = memo(({ reports, role, onLogout, onVote, onAddReport, onAddCom
               index={i}
               currUsername={currentUser?.username}
               currentUserEmail={currentUserEmail}
+              showToast={showToast}
             />
           ))}
 

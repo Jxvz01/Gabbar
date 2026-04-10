@@ -2,8 +2,9 @@ import React, { useState, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronUp, ChevronDown, MessageCircle, AlertTriangle, TrendingUp, CheckCircle, Send, Plus, Radio, Shield, Activity, FileText, Lock, Loader2, Edit3, ArrowRight, Zap, LogOut, Menu, X, Bell, User, TrendingUp as TrendingIcon } from 'lucide-react';
 import { sanitize, checkRateLimit } from '../security';
+import { copyToClipboard } from '../utils';
 
-export const ReportCard = memo(({ report, onVote, role, activeVote, onAddComment, onDeleteReport, index, currUsername, currentUserEmail }) => {
+export const ReportCard = memo(({ report, onVote, role, activeVote, onAddComment, onDeleteReport, index, currUsername, currentUserEmail, showToast }) => {
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
@@ -42,6 +43,15 @@ export const ReportCard = memo(({ report, onVote, role, activeVote, onAddComment
         <div className="flex-v6" style={{ justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div className="v-stack" style={{ gap: '8px', alignItems: 'flex-start', flex: 1 }}>
             <div className="flex-v6" style={{ gap: '8px', justifyContent: 'flex-start', flexDirection: 'row', flexWrap: 'wrap' }}>
+              <span 
+                className="badge-v7 category" 
+                style={{ background: 'rgba(255,255,255,0.05)', fontSize: '10px', cursor: 'pointer' }}
+                title="Click to copy Intel ID"
+                onClick={async () => {
+                  const ok = await copyToClipboard(report.id);
+                  if (ok) showToast('LOG_COPIED', `Intel ID #${report.id.slice(0,8)}... secure on clipboard.`, 'info');
+                }}
+              >#{report.id?.toString().slice(0, 8).toUpperCase()}</span>
               <span className="badge-v7 category" style={{ background: 'rgba(255,255,255,0.05)', fontSize: '10px' }}>{report.category.toUpperCase()}</span>
               {isPriority && <span className="trigger-v18 trigger-priority"><AlertTriangle size={12} /> Priority</span>}
               {isTrending && <span className="trigger-v18 trigger-trending"><TrendingIcon size={12} /> Trending</span>}
