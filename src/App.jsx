@@ -1008,6 +1008,7 @@ const Dashboard = memo(({ reports, role, onLogout, onVote, onAddReport, onAddCom
   const [isEditingUsername, setIsEditingUsername] = useState(false);
   const [newUsername, setNewUsername] = useState(currentUser?.username || 'ANON_OPERATIVE');
   const isMobile = winWidth <= 1024;
+  const [isSidebarVisible, setIsSidebarVisible] = useState(!isMobile); // Show by default on desktop, hidden on mobile
 
   const userReports = useMemo(() => {
     return reports.filter(r => r.user_id === currentUserEmail || r.author_email === currentUserEmail);
@@ -1041,7 +1042,7 @@ const Dashboard = memo(({ reports, role, onLogout, onVote, onAddReport, onAddCom
   };
 
   return (
-    <div className="dash-layout-v7">
+    <div className={`dash-layout-v7 ${!isSidebarVisible ? 'sidebar-hidden' : ''}`}>
       {/* 📱 MOBILE HEADER (GABBAR BRANDING) */}
       <div className="mobile-header-v20" style={{ justifyContent: 'center' }}>
         <div className="nav-logo" style={{ marginBottom: 0, display: 'block', fontSize: '18px' }}>GABBAR.</div>
@@ -1066,7 +1067,10 @@ const Dashboard = memo(({ reports, role, onLogout, onVote, onAddReport, onAddCom
               <div
                 key={item.id}
                 className={`nav-item-v7 ${activeTab === item.id ? 'active' : ''}`}
-                onClick={() => setActiveTab(item.id)}
+                onClick={() => {
+                  setActiveTab(item.id);
+                  if (isMobile) setIsSidebarVisible(false); // Auto-close on mobile
+                }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                   {item.icon} <span>{item.label}</span>
@@ -1085,10 +1089,21 @@ const Dashboard = memo(({ reports, role, onLogout, onVote, onAddReport, onAddCom
       {/* 📦 MAIN FEED */}
       <main className="main-feed-v7">
         <div className="feed-container-v7">
-          <header className="top-nav-v7" style={{ alignItems: 'flex-start' }}>
-            <div style={{ textAlign: 'left' }}>
-              <h2 className="h-title" style={{ fontSize: '24px' }}>{activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}</h2>
-              <p className="h-sub" style={{ textAlign: 'left' }}>Secure platform intelligence.</p>
+          <header className="top-nav-v7" style={{ alignItems: 'center', gap: '20px' }}>
+            <div className="flex-v6" style={{ width: 'auto', gap: '16px' }}>
+              {!isMobile && (
+                <button 
+                  className="menu-toggle-v33" 
+                  onClick={() => setIsSidebarVisible(!isSidebarVisible)}
+                  title={isSidebarVisible ? "Collapse Sidebar" : "Expand Interface"}
+                >
+                  <Menu size={20} />
+                </button>
+              )}
+              <div style={{ textAlign: 'left' }}>
+                <h2 className="h-title" style={{ fontSize: '24px', marginBottom: '2px' }}>{activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}</h2>
+                <p className="h-sub" style={{ textAlign: 'left', fontSize: '12px' }}>Secure platform intelligence.</p>
+              </div>
             </div>
             <div className="flex-v6" style={{ gap: '8px', flexDirection: 'row', width: 'auto' }}>
               <div className="badge-v7 status" style={{ fontSize: '9px' }}>#{role.toUpperCase()}</div>
