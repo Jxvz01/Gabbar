@@ -1047,6 +1047,29 @@ const Dashboard = memo(({ reports, role, onLogout, onVote, onAddReport, onAddCom
                   <div className="v-stack" style={{ gap: '16px', alignItems: 'flex-start', marginTop: '16px', borderTop: '1px solid var(--glass-border)', paddingTop: '32px', width: '100%' }}>
                     <div className="flex-v6" style={{ color: 'var(--accent-emerald)', fontSize: '11px', fontWeight: '900', gap: '12px' }}><CheckCircle size={14} /> IDENTITY_SHIELD: NOMINAL</div>
                     <div className="flex-v6" style={{ color: 'var(--accent-emerald)', fontSize: '11px', fontWeight: '900', gap: '12px' }}><CheckCircle size={14} /> PACKET_ROUTING: MASKED</div>
+                    
+                    <button 
+                      onClick={onLogout}
+                      className="btn-v15" 
+                      style={{ 
+                        marginTop: '16px', 
+                        width: '100%', 
+                        textAlign: 'center', 
+                        padding: '12px', 
+                        fontSize: '11px', 
+                        fontWeight: '800', 
+                        letterSpacing: '2px', 
+                        color: 'var(--accent-rose)', 
+                        background: 'rgba(244, 63, 94, 0.05)',
+                        border: '1px solid rgba(244, 63, 94, 0.1)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '10px'
+                      }}
+                    >
+                      <LogOut size={14} /> TERMINATE_CONNECTION
+                    </button>
                   </div>
                 </div>
               </aside>
