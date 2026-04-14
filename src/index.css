@@ -512,10 +512,12 @@ html {
 }
 
 .footer-master {
-  padding: 80px 0;
+  padding: 24px 0;
   text-align: center;
   border-top: 1px solid var(--glass-border);
-  margin-top: 120px;
+  margin-top: 40px;
+  grid-column: 1 / -1;
+  width: 100%;
 }
 
 /* 🌪️ CINEMATIC LANDING V7 (PREMIUM OVERHAUL) */
@@ -1083,7 +1085,7 @@ html {
 }
 
 .footer-master-v7 {
-  padding: 80px 0;
+  padding: 40px 0;
   border-top: 1px solid var(--glass-border);
 }
 

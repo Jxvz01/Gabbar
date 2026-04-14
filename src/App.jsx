@@ -201,11 +201,10 @@ const LandingPage = ({ onJoin }) => {
           <div className="footer-layout-v7">
             <div className="footer-brand">
               <div className="nav-logo" style={{ marginBottom: '12px', fontSize: '24px', fontWeight: '900', letterSpacing: '-1px' }}>GABBAR.</div>
-              <p className="footer-brand-p">Next-Gen Intelligence Shield</p>
             </div>
-            <div className="footer-links">
-              <p className="footer-text">© 2026 GABBAR | Developed by <a href="https://jxvz01.vercel.app" target="_blank" rel="noopener noreferrer" className="dev-link">Jxvz01</a></p>
-              <div className="security-badge">PROTOCOL_V3.8_ACTIVE</div>
+            <div className="footer-links" style={{ gap: '12px' }}>
+              <p className="footer-text">© 2026 GABBAR | Dev by <a href="https://jxvz01.vercel.app" target="_blank" rel="noopener noreferrer" className="dev-link">Jxvz01</a></p>
+              <div className="security-badge" style={{ fontSize: '9px' }}>PROTOCOL_V3.8</div>
             </div>
           </div>
         </div>
@@ -1206,8 +1205,8 @@ const Dashboard = memo(({ reports, role, onLogout, onVote, onAddReport, onAddCom
           </motion.div>
         </div>
       )}
-      <footer className="footer-master" style={{ marginTop: 'auto', border: 'none', background: 'none', padding: '24px 0' }}>
-        <p className="footer-text" style={{ fontSize: '10px', opacity: 0.5, textAlign: 'center' }}>© 2026 GABBAR | ANONYMOUS INTELLIGENCE HUB | Developed by <a href="https://jxvz01.vercel.app" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary)', fontWeight: '800', textDecoration: 'none' }}>Jxvz01</a></p>
+      <footer className="footer-master" style={{ border: 'none', background: 'none', padding: '16px 0' }}>
+        <p className="footer-text" style={{ fontSize: '10px', opacity: 0.5, textAlign: 'center' }}>© 2026 GABBAR | Dev by <a href="https://jxvz01.vercel.app" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary)', fontWeight: '800', textDecoration: 'none' }}>Jxvz01</a></p>
       </footer>
     </div>
   );
