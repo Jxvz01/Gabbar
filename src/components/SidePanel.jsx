@@ -1,20 +1,21 @@
 import React from 'react';
-import { TrendingUp, Activity, MessageCircle } from 'lucide-react';
+import { TrendingUp, Activity, MessageCircle, Server } from 'lucide-react';
 
 export const SidePanel = ({ reports, topReports }) => (
-  <div className="v-stack" style={{ gap: '32px', alignItems: 'stretch' }}>
+  <div className="v-stack" style={{ gap: '40px', alignItems: 'stretch' }}>
     <section>
-      <div className="flex-v6" style={{ justifyContent: 'flex-start', marginBottom: '24px', gap: '12px', color: 'var(--primary)' }}>
-        <TrendingUp size={18} />
-        <h3 className="h-title" style={{ fontSize: '18px' }}>Trending Intel</h3>
+      <div className="flex-v6" style={{ justifyContent: 'flex-start', marginBottom: '20px', gap: '10px', color: 'var(--primary)' }}>
+        <TrendingUp size={20} strokeWidth={2.5} />
+        <h3 style={{ fontSize: '18px', fontWeight: '800', fontFamily: 'var(--font-main)', letterSpacing: '1px' }}>TRENDING_INTEL</h3>
       </div>
-      <div className="v-stack" style={{ gap: '12px' }}>
+      <div className="v-stack" style={{ gap: '16px' }}>
         {topReports.map(r => (
-          <div key={r.id} className="feed-card-v7" style={{ padding: '20px', margin: 0 }}>
-            <div className="badge-v7 category" style={{ fontSize: '8px', marginBottom: '8px' }}>{r.category.toUpperCase()}</div>
-            <h4 style={{ fontSize: '14px', marginBottom: '4px', color: '#fff' }}>{r.title}</h4>
-            <div className="flex-v6" style={{ justifyContent: 'flex-start', gap: '8px', opacity: 0.6, fontSize: '11px' }}>
-              <Activity size={12} /> {r.upvotes} Signals
+          <div key={r.id} className="bento-item" style={{ padding: '20px', borderRadius: '16px', background: 'rgba(255,255,255,0.02)' }}>
+            <div className="flashlight-glow" style={{ opacity: 0.2 }}></div>
+            <div className="badge-v7" style={{ fontSize: '8px', marginBottom: '10px', background: 'rgba(6, 182, 212, 0.1)', color: 'var(--primary)', border: 'none' }}>{r.category.toUpperCase()}</div>
+            <h4 style={{ fontSize: '15px', fontWeight: '700', marginBottom: '8px', color: '#fff', lineHeight: '1.4' }}>{r.title}</h4>
+            <div className="flex-v6" style={{ justifyContent: 'flex-start', gap: '8px', opacity: 0.5, fontSize: '11px', fontWeight: '700', fontFamily: 'var(--font-mono)' }}>
+              <Activity size={12} /> {r.upvotes} SIGNALS
             </div>
           </div>
         ))}
@@ -22,14 +23,21 @@ export const SidePanel = ({ reports, topReports }) => (
     </section>
 
     <section>
-      <div className="flex-v6" style={{ justifyContent: 'flex-start', marginBottom: '24px', gap: '12px', color: 'var(--accent-purple)' }}>
-        <MessageCircle size={18} />
-        <h3 className="h-title" style={{ fontSize: '18px' }}>Hub Activity</h3>
+      <div className="flex-v6" style={{ justifyContent: 'flex-start', marginBottom: '20px', gap: '10px', color: 'var(--accent-purple)' }}>
+        <Server size={20} strokeWidth={2.5} />
+        <h3 style={{ fontSize: '18px', fontWeight: '800', fontFamily: 'var(--font-main)', letterSpacing: '1px' }}>HUB_STATUS</h3>
       </div>
-      <div className="glass-v7" style={{ padding: '24px', borderRadius: '20px', fontSize: '12px', lineHeight: '1.6', color: 'var(--text-dim)' }}>
-        <p>Operational node <span style={{ color: 'var(--primary)' }}>#G9-22</span> active.</p>
-        <p style={{ marginTop: '12px' }}>Encryption layer: <span style={{ color: 'var(--accent-emerald)' }}>OPTIMAL</span></p>
+      <div className="bento-item" style={{ padding: '24px', borderRadius: '16px', fontSize: '12px', lineHeight: '1.8', background: 'rgba(129, 140, 248, 0.05)', border: '1px solid rgba(129, 140, 248, 0.1)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+          <span style={{ color: 'var(--text-dim)', fontWeight: '700' }}>NODE:</span>
+          <span style={{ color: 'var(--primary)', fontWeight: '800', fontFamily: 'var(--font-mono)' }}>#G9-22</span>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <span style={{ color: 'var(--text-dim)', fontWeight: '700' }}>PROTOCOL:</span>
+          <span style={{ color: 'var(--accent-emerald)', fontWeight: '800', fontFamily: 'var(--font-mono)' }}>OPTIMAL</span>
+        </div>
       </div>
     </section>
   </div>
 );
+

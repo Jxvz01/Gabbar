@@ -43,21 +43,16 @@ const LandingPage = ({ onJoin }) => {
       </div>
       <div className="noise-overlay"></div>
 
-      {/* 🔥 HERO SECTION (CINEMATIC) */}
+      {/* 🔥 HERO SECTION (PREMIUM) */}
       <section className="hero-v7">
         <div className="hero-visual-system">
           <div className="radar-grid"></div>
           <motion.div
             animate={{
-              scale: [1, 1.1, 1],
-              opacity: [0.3, 0.6, 0.3],
-              boxShadow: [
-                "0 0 40px rgba(59, 130, 246, 0.2)",
-                "0 0 80px rgba(59, 130, 246, 0.4)",
-                "0 0 40px rgba(59, 130, 246, 0.2)"
-              ]
+              scale: [1, 1.05, 1],
+              opacity: [0.4, 0.6, 0.4],
             }}
-            transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+            transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
             className="intelligence-orb"
           ></motion.div>
           <div className="data-rings">
@@ -65,67 +60,44 @@ const LandingPage = ({ onJoin }) => {
             <div className="ring ring-2"></div>
             <div className="ring ring-3"></div>
           </div>
-          <div className="particle-system">
-            {[...Array(20)].map((_, i) => (
-              <motion.div
-                key={i}
-                className="p-dot"
-                initial={{
-                  x: Math.random() * 1000 - 500,
-                  y: Math.random() * 1000 - 500,
-                  opacity: 0
-                }}
-                animate={{
-                  y: [null, Math.random() * -100 - 50],
-                  opacity: [0, 0.6, 0]
-                }}
-                transition={{
-                  duration: Math.random() * 5 + 5,
-                  repeat: Infinity,
-                  delay: Math.random() * 5
-                }}
-              />
-            ))}
-          </div>
         </div>
 
         <div className="container-v6 hero-content-v7">
           <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: 40 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
             className="v-stack"
           >
+            <div className="hero-label-v7">
+              <Shield size={12} /> SYSTEM_READY_V9.2
+            </div>
             <h1 className="hero-h1-v7">Silence is broken.<br /><span className="gradient-text">Intelligence begins.</span></h1>
-            <p className="hero-p-v7">A high-fidelity, anonymous intelligence hub for campus safety and transparency. Your voice, protected by end-to-end encryption protocols.</p>
+            <p className="hero-p-v7">A high-fidelity, anonymous intelligence hub for campus safety. Your voice, protected by end-to-end encryption protocols.</p>
 
-            <div className="flex-v6" style={{ marginTop: '40px' }}>
-              <motion.button
-                whileHover={{ y: -3, scale: 1.05, boxShadow: '0 0 30px rgba(255, 255, 255, 0.2)' }}
-                whileTap={{ scale: 0.98 }}
-                className="btn-v7 primary"
+            <div className="flex-v6" style={{ marginTop: '48px', gap: '20px' }}>
+              <button 
+                className="btn-premium level-1" 
                 onClick={() => onJoin('auth', 'signup')}
               >
-                Sign-Up <ArrowRight size={18} style={{ marginLeft: '12px' }} />
-              </motion.button>
-              <motion.button
-                whileHover={{ y: -3, scale: 1.05, background: 'rgba(255, 255, 255, 0.05)' }}
-                whileTap={{ scale: 0.98 }}
-                className="btn-v7 secondary"
+                Initialize Access <ArrowRight size={18} />
+              </button>
+              <button 
+                className="btn-premium level-2" 
                 onClick={() => onJoin('auth', 'login')}
               >
-                Sign-In
-              </motion.button>
+                Operator Login
+              </button>
             </div>
           </motion.div>
         </div>
       </section>
 
-      {/* 🧊 CORE CAPABILITIES (Cards Upgrade) */}
+      {/* 🧊 BENTO ARCHITECTURE */}
       <section className="section-v7">
         <div className="container-v6">
           <motion.div
-            initial={{ opacity: 0, y: 40 }}
+            initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             className="section-header-v7"
@@ -134,43 +106,45 @@ const LandingPage = ({ onJoin }) => {
             <p className="desc-v7">Engineered for absolute privacy and high-speed intelligence routing.</p>
           </motion.div>
 
-          <div className="grid-v7">
+          <div className="bento-grid">
             {[
-              { t: '100% ANONYMOUS', d: 'Zero-trace reporting infrastructure. Your identity remains uncoupled from the data layers.', icon: <Lock size={24} /> },
-              { t: 'ENCRYPTED INTEL', d: 'Military-grade encryption for all media and text submissions. Privacy is not a feature, it is the core.', icon: <Shield size={24} /> },
-              { t: 'RAPID RESPONSE', d: 'Direct, prioritized communication channel to response teams without bureaucratic friction.', icon: <Zap size={24} /> }
+              { t: '100% ANONYMOUS', d: 'Zero-trace reporting infrastructure. Your identity remains uncoupled from the data layers.', icon: <Lock size={24} />, span: 'span 4' },
+              { t: 'ENCRYPTED INTEL', d: 'Military-grade encryption for all media and text submissions. Privacy is the core.', icon: <Shield size={24} />, span: 'span 4' },
+              { t: 'RAPID RESPONSE', d: 'Direct, prioritized communication channel to response teams without bureaucratic friction.', icon: <Zap size={24} />, span: 'span 4' },
+              { t: 'METADATA STRIPPING', d: 'All uploaded files are automatically scrubbed of EXIF and location data.', icon: <Activity size={24} />, span: 'span 6' },
+              { t: 'SAFE CHANNELING', d: 'Direct routing to trusted administrators via secure API tunnels.', icon: <TrendingUp size={24} />, span: 'span 6' }
             ].map((item, i) => (
               <motion.div
                 key={i}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.2, duration: 0.8 }}
-                whileHover={{ y: -10, scale: 1.02 }}
+                initial={{ opacity: 0, scale: 0.95 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                transition={{ delay: i * 0.1, duration: 0.5 }}
                 viewport={{ once: true }}
-                className="capability-card glass-v7"
+                className="bento-item"
+                style={{ gridColumn: isMobileDevice ? 'span 12' : item.span }}
               >
-                <div className="card-icon-v7">{item.icon}</div>
-                <h3 className="card-title-v7">{item.t}</h3>
+                <div className="flashlight-glow"></div>
+                <div className="card-icon-v7" style={{ marginBottom: '24px' }}>{item.icon}</div>
+                <h3 className="card-title-v7" style={{ fontSize: '18px', letterSpacing: '1px' }}>{item.t}</h3>
                 <p className="card-desc-v7">{item.d}</p>
-                <div className="card-glow-v7"></div>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* 🛡️ SECURITY PROTOCOL (Linear Flow) */}
+      {/* 🛡️ SECURITY PROTOCOL */}
       <section className="section-v7 dark-bg">
         <div className="container-v6">
           <div className="dual-layout-v7">
             <motion.div
-              initial={{ opacity: 0, x: -50 }}
+              initial={{ opacity: 0, x: -30 }}
               whileInView={{ opacity: 1, x: 0 }}
               transition={{ duration: 1 }}
               className="security-visual"
             >
               <div className="security-orb-v7">
-                <Activity size={120} strokeWidth={1} className="pulse-icon" />
+                <Activity size={100} strokeWidth={1} className="pulse-icon" />
               </div>
               <div className="pulse-circles">
                 <div className="p-circle"></div>
@@ -180,22 +154,22 @@ const LandingPage = ({ onJoin }) => {
 
             <div className="security-content">
               <h2 className="title-v7 left">Safety First.<br />Always.</h2>
-              <div className="v-stack" style={{ alignItems: 'flex-start', gap: '32px' }}>
+              <div className="v-stack" style={{ alignItems: 'flex-start', gap: '32px', marginTop: '40px' }}>
                 {[
-                  { t: 'Metadata Stripping', d: 'All uploaded files are automatically scrubbed of EXIF and location data.' },
-                  { t: 'Zero Interaction Logging', d: 'Platform visits and interactions are never mapped to hardware identifiers.' },
-                  { t: 'Safe Channeling', d: 'Direct routing to trusted administrators via secure API tunnels.' }
+                  { t: 'Metadata Stripping', d: 'Automated removal of tracking headers.' },
+                  { t: 'Zero Interaction Logging', d: 'Interactions never mapped to hardware IDs.' },
+                  { t: 'Safe Channeling', d: 'Encrypted tunnels to verified admins.' }
                 ].map((p, i) => (
                   <motion.div
                     key={i}
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0, y: 10 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.2 }}
                     className="protocol-item"
                   >
                     <div className="protocol-marker"></div>
                     <div className="v-stack" style={{ alignItems: 'flex-start' }}>
-                      <h4 className="p-title-v7">{p.t}</h4>
+                      <h4 className="p-title-v7" style={{ fontSize: '16px' }}>{p.t}</h4>
                       <p className="p-desc-v7">{p.d}</p>
                     </div>
                   </motion.div>
@@ -206,45 +180,19 @@ const LandingPage = ({ onJoin }) => {
         </div>
       </section>
 
-      {/* ⚙️ UPLINK PATHWAY (How it works) */}
-      <section className="section-v7">
-        <div className="container-v6">
-          <h2 className="title-v7 centered">The Intelligence Pathway</h2>
-          <div className="pathway-v7">
-            {[
-              { t: 'AUTHENTICATE', d: 'Secure campus login via institutional protocols.' },
-              { t: 'LOG_INTEL', d: 'Submit your report with optional media attachments.' },
-              { t: 'ADMIN_ACTION', d: 'Encrypted routing to relevant authorities for triage.' }
-            ].map((path, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, scale: 0.9 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                transition={{ delay: i * 0.2 }}
-                className="pathway-step glass-v7"
-              >
-                <div className="step-num-v7">0{i + 1}</div>
-                <h4 className="step-title-v7">{path.t}</h4>
-                <p className="step-desc-v7">{path.d}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* 🎯 FINAL CTA */}
       <section className="section-v7 final-cta">
         <motion.div
-          initial={{ opacity: 0, y: 60 }}
+          initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1.2 }}
+          transition={{ duration: 1 }}
           className="cta-glass-v7"
         >
           <div className="cta-grid-bg"></div>
-          <h2 className="cta-h2-v7">Ready to secure your campus?</h2>
-          <p className="cta-p-v7">Join the intelligence hub and help build a safer, more transparent environment today.</p>
-          <button className="btn-v7 primary large" onClick={() => onJoin('auth', 'signup')}>Sign-Up</button>
-          <div className="cta-sub-v7">STRENGTHENED BY 335+ SECURE SYSTEM COMMITS</div>
+          <h2 className="cta-h2-v7" style={{ fontSize: '48px', letterSpacing: '-2px' }}>Secure your campus.</h2>
+          <p className="cta-p-v7" style={{ marginBottom: '40px' }}>Join the intelligence hub and build a safer environment.</p>
+          <button className="btn-premium level-1" onClick={() => onJoin('auth', 'signup')}>Join the Intelligence Hub</button>
+          <div className="cta-sub-v7" style={{ marginTop: '40px' }}>STRENGTHENED BY 335+ SECURE COMMITS</div>
         </motion.div>
       </section>
 
@@ -252,12 +200,12 @@ const LandingPage = ({ onJoin }) => {
         <div className="container-v6">
           <div className="footer-layout-v7">
             <div className="footer-brand">
-              <div className="nav-logo" style={{ marginBottom: '12px' }}>GABBAR.</div>
+              <div className="nav-logo" style={{ marginBottom: '12px', fontSize: '24px', fontWeight: '900', letterSpacing: '-1px' }}>GABBAR.</div>
               <p className="footer-brand-p">Next-Gen Intelligence Shield</p>
             </div>
             <div className="footer-links">
               <p className="footer-text">© 2026 GABBAR | Developed by <a href="https://jxvz01.vercel.app" target="_blank" rel="noopener noreferrer" className="dev-link">Jxvz01</a></p>
-              <div className="security-badge">SECURE_SSL_V3</div>
+              <div className="security-badge">PROTOCOL_V3.8_ACTIVE</div>
             </div>
           </div>
         </div>
@@ -265,6 +213,8 @@ const LandingPage = ({ onJoin }) => {
     </div>
   );
 };
+
+
 
 const PulseVisualizer = () => (
   <div className="pulse-visualizer">
@@ -764,35 +714,36 @@ const AuthPage = memo(({ initialMode = 'login', onAuthSuccess, onGoogleAuth, onB
               />
               {authError && <div className="error-msg-v27 anim-fade-in">{authError}</div>}
             </div>
-            <button type="submit" className="btn-main primary full hover-glow">Sign-In</button>
-            <p className="auth-toggle-v4" onClick={() => setIsVerifying(false)} style={{ marginTop: '20px', cursor: 'pointer', fontSize: '12px' }}>← Back to credentials</p>
+            <button type="submit" className="btn-premium level-1" style={{ width: '100%' }}>Establish Link</button>
+            <p className="auth-toggle-v4" onClick={() => setIsVerifying(false)} style={{ marginTop: '20px', cursor: 'pointer', fontSize: '11px', fontWeight: '800' }}>← BACK TO CREDENTIALS</p>
           </form>
         ) : (
-            <button type="submit" className="btn-main primary full hover-glow">
-              {mode === 'login' ? 'Sign-In' : 'Sign-Up'}
+          <div className="v-stack" style={{ gap: '20px', width: '100%' }}>
+            <button type="submit" className="btn-premium level-1" style={{ width: '100%' }}>
+              {mode === 'login' ? 'Sign-In' : 'Request Access'}
             </button>
 
-            <div className="flex-v6" style={{ width: '100%', margin: '12px 0 0 0' }}>
+            <div className="flex-v6" style={{ width: '100%', margin: '8px 0' }}>
               <div style={{ height: '1px', flex: 1, background: 'var(--glass-border)' }}></div>
               <span style={{ fontSize: '10px', color: 'var(--text-dim)', fontWeight: '800', padding: '0 10px' }}>OR</span>
               <div style={{ height: '1px', flex: 1, background: 'var(--glass-border)' }}></div>
             </div>
 
-            <button type="button" onClick={onGoogleAuth} className="btn-google-v1">
+            <button type="button" onClick={onGoogleAuth} className="btn-premium level-2" style={{ width: '100%', fontSize: '12px' }}>
               <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="G" style={{ width: '16px' }} />
-              <span>CONTINUE WITH GOOGLE</span>
+              <span>Continue with Google</span>
             </button>
-          </form>
+          </div>
         )}
 
         <div className="auth-toggle-v4">
           {mode === 'login' ? (
-            <>
-              <p>New operative? <span onClick={() => { setMode('signup'); setAuthError(''); }}>Request Access</span></p>
-              <p className="forgot-p" onClick={() => alert('INTELLIGENCE RECOVERY: Contact System Admin for key reset.')}>Forgot encryption key?</p>
-            </>
+            <div className="v-stack" style={{ gap: '12px' }}>
+              <p style={{ fontSize: '13px' }}>New operative? <span style={{ color: 'var(--primary)', cursor: 'pointer', fontWeight: '700' }} onClick={() => { setMode('signup'); setAuthError(''); }}>Request Access</span></p>
+              <p className="forgot-p" style={{ fontSize: '10px', opacity: 0.5 }} onClick={() => alert('INTELLIGENCE RECOVERY: Contact System Admin for key reset.')}>Forgot encryption key?</p>
+            </div>
           ) : (
-            <p>Already registered? <span onClick={() => { setMode('login'); setAuthError(''); }}>Sign-In</span></p>
+            <p style={{ fontSize: '13px' }}>Already registered? <span style={{ color: 'var(--primary)', cursor: 'pointer', fontWeight: '700' }} onClick={() => { setMode('login'); setAuthError(''); }}>Sign-In</span></p>
           )}
         </div>
       </div>
@@ -861,8 +812,8 @@ const Dashboard = memo(({ reports, role, onLogout, onVote, onAddReport, onAddCom
   return (
     <div className={`dash-layout-v7 ${!isSidebarVisible ? 'sidebar-hidden' : ''}`}>
       {/* 📱 MOBILE HEADER (GABBAR BRANDING) */}
-      <div className="mobile-header-v20" style={{ justifyContent: 'center' }}>
-        <div className="nav-logo" style={{ marginBottom: 0, display: 'block', fontSize: '18px' }}>GABBAR.</div>
+      <div className="mobile-header-v20" style={{ justifyContent: 'center', borderBottom: '1px solid var(--glass-border)' }}>
+        <div className="nav-logo" style={{ marginBottom: 0, display: 'block', fontSize: '18px', fontWeight: '900' }}>GABBAR.</div>
       </div>
 
       <AnimatePresence>
@@ -871,25 +822,30 @@ const Dashboard = memo(({ reports, role, onLogout, onVote, onAddReport, onAddCom
 
       {/* 🧭 NAVIGATION (DESKTOP: SIDEBAR / MOBILE: BOTTOM NAV) */}
       {!isMobile && (
-        <aside className="side-nav-v7">
-          <div className="flex-v6" style={{ width: '100%', justifyContent: 'space-between', marginBottom: '40px' }}>
-            <div className="nav-logo" style={{ marginBottom: 0 }}>GABBAR.</div>
+        <aside className="side-nav-v7" style={{ background: 'rgba(9, 9, 11, 0.5)', backdropFilter: 'blur(20px)', borderRight: '1px solid var(--glass-border)' }}>
+          <div className="flex-v6" style={{ width: '100%', justifyContent: 'space-between', marginBottom: '48px', padding: '0 20px' }}>
+            <div className="nav-logo" style={{ marginBottom: 0, fontSize: '22px', fontWeight: '800', letterSpacing: '-1px' }}>GABBAR.</div>
           </div>
-          <nav className="nav-list">
+          <nav className="nav-list" style={{ padding: '0 12px' }}>
             {[
-              { id: 'feed', label: 'Feed', icon: <Radio size={18} /> },
-              { id: 'notifications', label: 'Notifications', icon: <Bell size={18} /> },
-              { id: 'profile', label: 'Profile', icon: <User size={18} /> }
+              { id: 'feed', label: 'Intelligence Feed', icon: <Radio size={18} /> },
+              { id: 'notifications', label: 'Signal Intel', icon: <Bell size={18} /> },
+              { id: 'profile', label: 'Operator Profile', icon: <User size={18} /> }
             ].map(item => (
               <div
                 key={item.id}
                 className={`nav-item-v7 ${activeTab === item.id ? 'active' : ''}`}
+                style={{ 
+                  borderRadius: '12px', 
+                  margin: '4px 0',
+                  padding: '12px 16px',
+                  fontWeight: activeTab === item.id ? '700' : '400',
+                  transition: '0.2s'
+                }}
                 onClick={() => {
                   setActiveTab(item.id);
                   if (isMobile) setIsSidebarVisible(false); // Auto-close on mobile
                 }}
-                title={`Switch to ${item.label} view`}
-                aria-label={`Navigate to ${item.label}`}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                   {item.icon} <span>{item.label}</span>
@@ -897,11 +853,12 @@ const Dashboard = memo(({ reports, role, onLogout, onVote, onAddReport, onAddCom
               </div>
             ))}
           </nav>
-          <div className="nav-item-v7" onClick={onLogout} style={{ marginTop: 'auto', opacity: 0.6, gap: '12px' }}>
-            Logout <LogOut size={16} />
+          <div className="nav-item-v7" onClick={onLogout} style={{ marginTop: 'auto', opacity: 0.5, gap: '12px', borderTop: '1px solid var(--glass-border)', borderRadius: 0, padding: '32px 32px', cursor: 'pointer' }}>
+            <LogOut size={18} /> <span>Terminate Connection</span>
           </div>
         </aside>
       )}
+
 
       {isMobile && <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />}
 
@@ -1258,40 +1215,6 @@ const Dashboard = memo(({ reports, role, onLogout, onVote, onAddReport, onAddCom
 
 // ReportCard migrated to src/components/
 
-const SystemBoot = ({ onComplete }) => {
-  const [percent, setPercent] = useState(0);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setPercent(p => {
-        if (p >= 100) {
-          clearInterval(timer);
-          setTimeout(onComplete, 500);
-          return 100;
-        }
-        return p + Math.floor(Math.random() * 5) + 1;
-      });
-    }, 50);
-    return () => clearInterval(timer);
-  }, [onComplete]);
-
-  return (
-    <div className="boot-screen">
-      <div className="boot-content">
-        <h2 className="boot-label">INITIALIZING GABBAR SYSTEM</h2>
-        <div className="boot-bar-container">
-          <motion.div className="boot-bar" style={{ width: `${percent}%` }} />
-        </div>
-        <div className="boot-stats">
-          <span style={{ color: 'var(--accent-emerald)' }}>SECURE_LINK: ACTIVE</span>
-          <span style={{ color: 'var(--accent-purple)' }}>ENCRYPTION: 4096-BIT</span>
-          <span style={{ color: 'var(--warning)' }}>TRACERS: DISABLED</span>
-        </div>
-        <span className="percent-v6">{percent}%</span>
-      </div>
-    </div>
-  );
-};
 
 const App = () => {
   const navigate = useNavigate();
