@@ -1,99 +1,83 @@
-# 🦇 GABBAR — Anonymous Intelligence Hub (V9.3)
+# 🦇 GABBAR — The Intelligence Hub (V10.0)
 
-[![Platform: React 19](https://img.shields.io/badge/Platform-React_19-blue.svg)](https://reactjs.org/)
-[![Vite: Optimized](https://img.shields.io/badge/Vite-Optimized-646CFF.svg)](https://vitejs.dev/)
-[![Database: Supabase](https://img.shields.io/badge/Database-Supabase-3ECF8E.svg)](https://supabase.com/)
+[![Platform: React 19](https://img.shields.io/badge/Platform-React_19-06b6d4.svg?style=flat-square)](https://reactjs.org/)
+[![Vite: Optimized](https://img.shields.io/badge/Vite-Optimized-646CFF.svg?style=flat-square)](https://vitejs.dev/)
+[![Database: Supabase](https://img.shields.io/badge/Database-Supabase-3ECF8E.svg?style=flat-square)](https://supabase.com/)
+[![Design: High--Fidelity](https://img.shields.io/badge/Design-High--Fidelity-fafafa.svg?style=flat-square)](#)
 
-GABBAR is a high-fidelity anonymous reporting platform designed as a **cinematic command center** for campus intelligence. Version 9.3 introduces massive UI/UX refinements focused on space optimization and operative progress tracking.
+GABBAR is a premium, high-fidelity anonymous reporting platform designed as a **Cinematic Command Center** for campus intelligence. Version 10.0 marks a complete professional overhaul, introducing a state-of-the-art Design System and a modular Bento Grid architecture.
 
 ---
 
-## 🚀 Key Evolutionary Features (V9.3)
+## 💎 Premium Design Philosophy
+GABBAR V10.0 transitions from a functional prototype to a professional-grade intelligence suite:
+- **Bento Grid Architecture**: A modular, responsive layout system that organizes complex data into clean, digestible "intel blocks."
+- **Optical Design System**: Deep slate palettes, cyan-blue highlights, and obsidian-glass surfaces creating an immersive "Secure Uplink" experience.
+- **Cinematic Interactions**: Smooth, spring-based motion dynamics and flashlight-glow effects that respond to operative cursor movements.
 
-### 🖥️ COLLAPSIBLE COMMAND SIDEBAR
-Modernized layout with a toggleable sidebar system.
-- **Menu Toggle**: Increase display area for intelligence feeds by 30% with a single click.
-- **Fluid Transitions**: Zero-jitter grid animations for seamless workspace expansion.
+---
 
-### 🎭 OPERATIVE ACHIEVEMENT SYSTEM
-Track your impact within the hub with the new **Achievement Hub**.
-- **Dynamic Badges**: Unlock badges based on active reporting and positive impact.
+## 🚀 Key Systems
 
-### 🕵️ /DEV ROOT TERMINAL
+### 🖥️ Unified Control Center
+Modernized layout with a sophisticated navigation system.
+- **Dynamic Sidebar**: Toggleable workspace to maximize intelligence feed density.
+- **Responsive Core**: Completely optimized for both desktop command centers and mobile field operations.
+
+### 🎭 Operative Achievement System
+Track and showcase your impact within the hub via the **Achievement Hub**.
+- **Tactical Badges**: Progress from 'First Contact' to 'Elite Operative'.
+- **Impact Metrics**: Real-time visualization of platform contribution scores.
+
+### 🕵️ /DEV Root Terminal
 A restricted, high-fidelity hacker-themed interface located at `/dev`. Designed for master operatives to oversee system integrity.
-- **Cinematic Matrix Rain** background.
-- **Root Authentication** bypass for whitelisted developers.
-- **Command Overrides** for system-wide management.
+- **Matrix Rain Overlays**: Cinematic visual feedback for administrative tasks.
+- **Root Authentication**: Secure bypass for authorized system architects.
 
-### 🔐 UPLINK SECURITY (Google OAuth)
-Integrated **Google OAuth** for seamless, secure campus-wide access, bypassing traditional email friction while maintaining encrypted identity layers.
-
-### 🕹️ ADMIN COMMAND CENTER (V28)
-An industrial-grade management panel with:
-- **Signal Broadcasts**: Send encrypted mass notifications or targeted user messages.
-- **Operative Lockdown**: Granular **Ban/Unban** controls for user management.
-- **Intel Purging**: Ability to permanently delete compromised or irrelevant reports.
+### 🔐 Multi-Layer Security
+- **Secure Uplink**: Integrated Google OAuth for friction-less, encrypted access.
+- **Identity Shielding**: Complete cryptographic separation between operatives and their intelligence logs.
+- **Packet Routing**: Automatic masking of metadata and origin points.
 
 ---
 
-## 🏗️ System Architecture
+## 🏗️ Technical Blueprint
 
-GABBAR V9.3 has been modularized for high-concurrency development and cleaner lifecycle management.
-
-### 📦 Component Architecture
+### 📦 Modular Component Suite
 | Module | Purpose | Location |
 | :--- | :--- | :--- |
-| `AuthForm` | Unified student/admin identity uplink. | `src/components/AuthForm.jsx` |
-| `ReportCard` | High-fidelity intelligence log visualization. | `src/components/ReportCard.jsx` |
-| `AchievementHub` | Operative progression and badge tracking. | `src/components/AchievementHub.jsx` |
-| `SidePanel` | Trending intel and platform metric telemetry. | `src/components/SidePanel.jsx` |
-| `SystemBoot` | Cinematic system initialization sequence. | `src/components/SystemBoot.jsx` |
+| `AuthForm` | Secure Uplink Terminal for identity verification. | `src/components/AuthForm.jsx` |
+| `ReportCard` | Premium 'Intel Log' visualization with glow dynamics. | `src/components/ReportCard.jsx` |
+| `SidePanel` | Real-time telemetry and trending intelligence. | `src/components/SidePanel.jsx` |
+| `AchievementHub` | Data-driven progression and badge rendering. | `src/components/AchievementHub.jsx` |
+| `SystemBoot` | Cinematic initialization and authentication sequence. | `src/components/SystemBoot.jsx` |
 
-### 🧩 Core Infrastructure
-- **Security Utilities**: `src/security.js` (JSDoc Documented)
-- **Tactical Helpers**: `src/utils.js` (Clipboard & Date formatting)
-- **Global Constants**: `src/constants.js` (Centralized business logic)
-
----
-
-## 🔒 Security Protocol
-
-GABBAR is designed with **Anonymity-First Architecture**:
-
-- **Identity Decoupling**: User identity is cryptographically separated from intelligence logs.
-- **Anonymous Codename System**: Custom operative handles (e.g., *ShadowFox*) are visible, but emails remain hidden.
-- **Master Operative Whitelist**: Strict developer-only access to root terminal tools.
-- **Domain Lockdown**: Restricted to `@vvce.ac.in` verified operatives.
+### 🛠️ Strategic Stack
+- **Frontend**: React 19 (High-performance Hooks + Memoization)
+- **Infrastructure**: Supabase (PostgreSQL + RLS Security Policies)
+- **Motion**: Framer Motion (Orchestration & Micro-interactions)
+- **Icons**: Lucide React (Tactical Iconography Suite)
 
 ---
 
-## 🛠️ Stack Analysis
-
-- **Core**: React 19 (Hooks + Memoization)
-- **Database**: Supabase (PostgreSQL + RLS Policies)
-- **Authentication**: Supabase Auth (GoTrue) + OAuth 2.0
-- **Styling**: Vanilla CSS (Global Tokens + Cinematic Keyframes)
-- **Motion**: Framer Motion (Orchestration & UI Micro-states)
-
----
-
-## 🏗️ Deployment & Setup
+## ⚙️ Deployment Protocol
 
 ```bash
-# Clone the encrypted repository
+# Clone the repository
 git clone https://github.com/Jxvz01/Gabbar.git
 
-# Initialize environment
+# Install dependencies
 npm install
 
-# Build production bundle
+# Initialize production build
 npm run build
 
-# Boot local terminal
+# Launch local environment
 npm run dev
 ```
 
-© 2026 **GABBAR HUB** | ANONYMOUS INTELLIGENCE HUB | Developed by Jxvz01
+---
 
-## Project Vision
-GABBAR aims to be the gold standard for anonymous campus intelligence, providing a secure, high-fidelity platform for students and faculty to share critical information without fear of retaliation.
+© 2026 **GABBAR SYSTEM** | Developed by [Jxvz01](https://jxvz01.vercel.app)
+
+> **Vision**: GABBAR aims to be the gold standard for anonymous campus intelligence, providing a secure, premium environment for critical information exchange without fear of retaliation.
