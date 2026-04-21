@@ -3583,3 +3583,6 @@ html {
 ::-webkit-scrollbar-track { background: #0a0a0a; }
 ::-webkit-scrollbar-thumb { background: #1f2937; border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: #374151; }
+
+/* === BADGE STYLES === */
+.badge-critical { background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
