@@ -13,3 +13,9 @@
 - [ ] User ban/unban
 - [ ] Report deletion
 
+
+## Performance Benchmarks
+- First Contentful Paint: < 1.5s
+- Largest Contentful Paint: < 2.5s
+- Total Bundle Size: < 620KB (gzipped: ~180KB)
+
