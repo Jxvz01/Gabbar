@@ -3563,3 +3563,6 @@ html {
   transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 .input-v9:focus { outline: none; border-color: var(--primary); background: rgba(59, 130, 246, 0.05); box-shadow: 0 0 20px rgba(59, 130, 246, 0.15); }
+
+.hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+.hide-scrollbar::-webkit-scrollbar { display: none; }

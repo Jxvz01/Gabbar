@@ -364,7 +364,7 @@ const DevPanel = memo(({ reports, users, onDelete, onStatusChange, onBack, onSen
             <thead>
               <tr>
                 <th className="admin-th-v15">OPERATIVE_USERNAME</th>
-                <th className="admin-th-v15">EMAIL</th>
+                <th className="admin-th-v15">SYSTEM_ID</th>
                 <th className="admin-th-v15">RANK</th>
                 <th className="admin-th-v15">IDENTITY_STATUS</th>
                 <th className="admin-th-v15">COMMANDS</th>
@@ -374,7 +374,7 @@ const DevPanel = memo(({ reports, users, onDelete, onStatusChange, onBack, onSen
               {users.map((u) => (
                 <tr key={u.id} className="admin-row-v15">
                   <td className="admin-td-v15" style={{ fontWeight: '800', color: '#fff' }}>{u.username}</td>
-                  <td className="admin-td-v15">{u.email}</td>
+                  <td className="admin-td-v15" style={{ fontSize: '10px', opacity: 0.5 }}>{u.id.slice(0, 12)}...</td>
                   <td className="admin-td-v15">{u.role}</td>
                   <td className="admin-td-v15">
                     <span className={`badge-v15 ${u.is_banned ? 'badge-critical' : 'badge-admin'}`}>
@@ -654,12 +654,20 @@ const AuthPage = memo(({ initialMode = 'login', onAuthSuccess, onGoogleAuth, onB
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [campusId, setCampusId] = useState('');
+  const [password, setPassword] = useState('');
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [authError, setAuthError] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
   const [typedCode, setTypedCode] = useState('');
 
+  useEffect(() => {
+    if (isAdmin) setRole('Admin');
+    else setRole('Student');
+  }, [isAdmin]);
+
   const handleSubmit = (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     setAuthError('');
 
     if (!isValidCollegeEmail(email)) {
@@ -667,8 +675,9 @@ const AuthPage = memo(({ initialMode = 'login', onAuthSuccess, onGoogleAuth, onB
       return;
     }
 
-    const password = e.target.password.value;
+    setLoading(true);
     onAuthSuccess(role, email, username || 'ANON_OPERATIVE', mode, password, null, campusId).then(result => {
+      setLoading(false);
       if (!result?.ok) {
         setAuthError(result?.error || 'Verification Failed: Check Operative Key.');
         if (result?.needsVerification) setIsVerifying(true);
@@ -718,9 +727,23 @@ const AuthPage = memo(({ initialMode = 'login', onAuthSuccess, onGoogleAuth, onB
           </form>
         ) : (
           <div className="v-stack" style={{ gap: '20px', width: '100%' }}>
-            <button type="submit" className="btn-premium level-1" style={{ width: '100%' }}>
-              {mode === 'login' ? 'Sign-In' : 'Request Access'}
-            </button>
+            <AuthForm
+              authMode={mode}
+              email={email}
+              setEmail={setEmail}
+              password={password}
+              setPassword={setPassword}
+              username={username}
+              setUsername={setUsername}
+              campusId={campusId}
+              setCampusId={setCampusId}
+              isAdmin={isAdmin}
+              setIsAdmin={setIsAdmin}
+              onSubmit={handleSubmit}
+              loading={loading}
+            />
+
+            {authError && <div className="error-msg-v27 anim-fade-in" style={{ marginTop: '-10px', marginBottom: '10px', textAlign: 'center' }}>{authError}</div>}
 
             <div className="flex-v6" style={{ width: '100%', margin: '8px 0' }}>
               <div style={{ height: '1px', flex: 1, background: 'var(--glass-border)' }}></div>
@@ -900,7 +923,7 @@ const Dashboard = memo(({ reports, role, onLogout, onVote, onAddReport, onAddCom
           </header>
 
           {activeTab === 'feed' && (
-            <div className="feed-controls-v30 anim-fade-up" style={{ marginBottom: '32px', display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+            <div className="feed-controls-v30 anim-fade-up" style={{ marginBottom: '24px', display: 'flex', gap: '12px', flexWrap: isMobile ? 'nowrap' : 'wrap', flexDirection: isMobile ? 'column' : 'row' }}>
               <input 
                 className="input-v9" 
                 placeholder="SEARCH_INTEL_LOGS..." 
@@ -908,18 +931,18 @@ const Dashboard = memo(({ reports, role, onLogout, onVote, onAddReport, onAddCom
                 onChange={(e) => setSearchTerm(e.target.value)}
                 style={{ flex: 1, minWidth: '200px', marginBottom: 0 }}
               />
-              <div className="flex-v6" style={{ width: 'auto', gap: '8px', overflowX: 'auto', paddingBottom: '4px', justifyContent: 'flex-start' }}>
+              <div className="hide-scrollbar" style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px', justifyContent: 'flex-start', flexWrap: 'nowrap', width: '100%' }}>
                 <button 
                   onClick={() => setActiveCategory('All')}
                   className={`badge-v7 ${activeCategory === 'All' ? 'active-v30' : ''}`}
-                  style={{ cursor: 'pointer', background: activeCategory === 'All' ? 'var(--primary)' : 'rgba(255,255,255,0.05)', border: 'none', padding: '8px 16px' }}
+                  style={{ flexShrink: 0, cursor: 'pointer', background: activeCategory === 'All' ? 'var(--primary)' : 'rgba(255,255,255,0.05)', border: 'none', padding: '8px 16px' }}
                 >ALL</button>
                 {CATEGORIES.map(c => (
                   <button 
                     key={c}
                     onClick={() => setActiveCategory(c)}
                     className={`badge-v7 ${activeCategory === c ? 'active-v30' : ''}`}
-                    style={{ cursor: 'pointer', background: activeCategory === c ? 'var(--primary)' : 'rgba(255,255,255,0.05)', border: 'none', padding: '8px 16px' }}
+                    style={{ flexShrink: 0, cursor: 'pointer', background: activeCategory === c ? 'var(--primary)' : 'rgba(255,255,255,0.05)', border: 'none', padding: '8px 16px' }}
                   >{c.toUpperCase()}</button>
                 ))}
               </div>
@@ -1444,7 +1467,7 @@ const App = () => {
       category: e.target.category.value,
       content: sanitize(e.target.content.value),
       user_id: session.user.id,
-      author_email: session.user.email,
+      // ANONYMITY_PROTOCOL: author_email removed to prevent traceability
       author_name: currentUser.username,
       upvotes: 0,
       status: 'Pending',

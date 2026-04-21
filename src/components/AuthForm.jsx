@@ -1,8 +1,52 @@
 import React from 'react';
-import { Mail, Lock, LogIn } from 'lucide-react';
+import { Mail, Lock, User, Shield } from 'lucide-react';
 
-export const AuthForm = ({ authMode, email, setEmail, password, setPassword, isAdmin, setIsAdmin, onSubmit, loading }) => (
-  <form className="auth-f" onSubmit={onSubmit} style={{ gap: '24px' }}>
+export const AuthForm = ({ 
+  authMode, 
+  email, setEmail, 
+  password, setPassword, 
+  username, setUsername,
+  campusId, setCampusId,
+  isAdmin, setIsAdmin, 
+  onSubmit, 
+  loading 
+}) => (
+  <form className="auth-f" onSubmit={onSubmit} style={{ gap: '20px', display: 'flex', flexDirection: 'column' }}>
+    {authMode === 'signup' && (
+      <>
+        <div className="input-group-v4">
+          <label className="label-v4" style={{ color: 'var(--text-dim)', fontWeight: '800' }}>CODENAME (USERNAME)</label>
+          <div style={{ position: 'relative' }}>
+            <User size={16} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--primary)', opacity: 0.6 }} />
+            <input
+              className="input-v3"
+              type="text"
+              placeholder="e.g. GhostOperator"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+              style={{ paddingLeft: '48px', borderRadius: '12px' }}
+            />
+          </div>
+        </div>
+        <div className="input-group-v4">
+          <label className="label-v4" style={{ color: 'var(--text-dim)', fontWeight: '800' }}>CAMPUS_TOKEN (ID)</label>
+          <div style={{ position: 'relative' }}>
+            <Shield size={16} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--primary)', opacity: 0.6 }} />
+            <input
+              className="input-v3"
+              type="text"
+              placeholder="VVCE-202X-XXXX"
+              value={campusId}
+              onChange={(e) => setCampusId(e.target.value)}
+              required
+              style={{ paddingLeft: '48px', borderRadius: '12px' }}
+            />
+          </div>
+        </div>
+      </>
+    )}
+    
     <div className="input-group-v4">
       <label className="label-v4" style={{ color: 'var(--text-dim)', fontWeight: '800' }}>IDENTITY_UPLINK (EMAIL)</label>
       <div style={{ position: 'relative' }}>
@@ -18,6 +62,7 @@ export const AuthForm = ({ authMode, email, setEmail, password, setPassword, isA
         />
       </div>
     </div>
+    
     <div className="input-group-v4">
       <label className="label-v4" style={{ color: 'var(--text-dim)', fontWeight: '800' }}>ACCESS_CIPHER (PASSWORD)</label>
       <div style={{ position: 'relative' }}>
@@ -25,6 +70,7 @@ export const AuthForm = ({ authMode, email, setEmail, password, setPassword, isA
         <input
           className="input-v3"
           type="password"
+          name="password"
           placeholder="••••••••"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
@@ -52,4 +98,5 @@ export const AuthForm = ({ authMode, email, setEmail, password, setPassword, isA
     </button>
   </form>
 );
+
 
