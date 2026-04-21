@@ -9,16 +9,3 @@ Email security concerns to the maintainer. Do not open public issues for securit
 | 9.x     | Yes       |
 | < 9.0   | No        |
 
-
-## Authentication Architecture
-- Supabase GoTrue for session management
-- Google OAuth 2.0 for SSO
-- Domain-locked to @vvce.ac.in
-- Developer whitelist for /dev access
-
-
-## Data Protection
-- All reports are anonymized at submission
-- Row Level Security enforced on all tables
-- Service role key never exposed to client
-
