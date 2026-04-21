@@ -3571,3 +3571,6 @@ html {
 :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
+
+/* === PRINT STYLES === */
+@media print { .side-nav-v7, .bottom-nav-v26, .fab-v7, .ambient-bg { display: none !important; } }
