@@ -98,3 +98,11 @@
 - Role-based access control
 - Report submission and voting system
 
+
+## [9.2.1] - 2026-04-03
+- SEO optimizations (meta tags, sitemap, robots.txt)
+- Accessibility improvements (focus-visible, reduced-motion)
+- PWA manifest for installability
+- Custom scrollbar and selection styles
+- Documentation overhaul (CHANGELOG, LICENSE, CONTRIBUTING, SECURITY, TESTING)
+
