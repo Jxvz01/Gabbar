@@ -1,0 +1,103 @@
+import React from 'react';
+import { Mail, Lock, User, Shield } from 'lucide-react';
+
+const t = (str) => str;
+
+
+export const AuthForm = ({ 
+  authMode, 
+  email, setEmail, 
+  password, setPassword, 
+  username, setUsername,
+  campusId, setCampusId,
+  isAdmin, setIsAdmin, 
+  onSubmit, 
+  loading 
+}) => (
+  <form className="auth-f" onSubmit={onSubmit} style={{ gap: '20px', display: 'flex', flexDirection: 'column' }}>
+    {authMode === 'signup' && (
+      <>
+        <div className="input-group-v4">
+          <label className="label-v4" style={{ color: 'var(--text-dim)', fontWeight: '700' }}>{t('Username')}</label>
+          <div style={{ position: 'relative' }}>
+            <User size={16} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#52525b' }} />
+            <input
+              className="input-v3"
+              type="text"
+              placeholder="Your username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+              style={{ paddingLeft: '48px', borderRadius: '12px' }}
+            />
+          </div>
+        </div>
+        <div className="input-group-v4">
+          <label className="label-v4" style={{ color: 'var(--text-dim)', fontWeight: '700' }}>{t('Campus ID')}</label>
+          <div style={{ position: 'relative' }}>
+            <Shield size={16} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#52525b' }} />
+            <input
+              className="input-v3"
+              type="text"
+              placeholder="VVCE-202X-XXXX"
+              value={campusId}
+              onChange={(e) => setCampusId(e.target.value)}
+              required
+              style={{ paddingLeft: '48px', borderRadius: '12px' }}
+            />
+          </div>
+        </div>
+      </>
+    )}
+    
+    <div className="input-group-v4">
+      <label className="label-v4" style={{ color: 'var(--text-dim)', fontWeight: '700' }}>{t('Email Address')}</label>
+      <div style={{ position: 'relative' }}>
+        <Mail size={16} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#52525b' }} />
+        <input
+          className="input-v3"
+          type="email"
+          placeholder="yourname@college.edu"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          style={{ paddingLeft: '48px', borderRadius: '12px' }}
+        />
+      </div>
+    </div>
+    
+    <div className="input-group-v4">
+      <label className="label-v4" style={{ color: 'var(--text-dim)', fontWeight: '700' }}>{t('Password')}</label>
+      <div style={{ position: 'relative' }}>
+        <Lock size={16} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#52525b' }} />
+        <input
+          className="input-v3"
+          type="password"
+          name="password"
+          placeholder="••••••••"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          style={{ paddingLeft: '48px', borderRadius: '12px' }}
+        />
+      </div>
+    </div>
+
+    {authMode === 'signup' && (
+      <div className="flex-v6" style={{ justifyContent: 'flex-start', gap: '12px', marginTop: '4px' }}>
+        <input
+          type="checkbox"
+          checked={isAdmin}
+          onChange={(e) => setIsAdmin(e.target.checked)}
+          id="admin-check"
+          style={{ width: '16px', height: '16px', borderRadius: '4px', accentColor: 'var(--primary)' }}
+        />
+        <label htmlFor="admin-check" style={{ fontSize: '11px', fontWeight: '700', cursor: 'pointer', color: 'var(--text-secondary)' }}>{t('Request Admin Access')}</label>
+      </div>
+    )}
+
+    <button type="submit" className="btn-premium level-1" style={{ width: '100%', marginTop: '8px' }} disabled={loading}>
+      {loading ? 'Loading...' : (authMode === 'login' ? 'Sign In' : 'Sign Up')}
+    </button>
+  </form>
+);
