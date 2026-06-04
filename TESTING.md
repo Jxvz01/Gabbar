@@ -19,3 +19,11 @@
 - Largest Contentful Paint: < 2.5s
 - Total Bundle Size: < 620KB (gzipped: ~180KB)
 
+
+## Browser Support
+- Chrome 90+
+- Firefox 88+
+- Safari 14+
+- Edge 90+
+- Mobile Chrome / Safari
+
