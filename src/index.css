@@ -5558,3 +5558,6 @@ h1, h2, h3, h4 {
 
 /* === PRINT STYLES === */
 @media print { .side-nav-v7, .bottom-nav-v26, .fab-v7, .ambient-bg { display: none !important; } }
+
+/* === SELECTION STYLES === */
+::selection { background: var(--primary); color: #fff; }
