@@ -16,3 +16,9 @@ Email security concerns to the maintainer. Do not open public issues for securit
 - Domain-locked to @vvce.ac.in
 - Developer whitelist for /dev access
 
+
+## Data Protection
+- All reports are anonymized at submission
+- Row Level Security enforced on all tables
+- Service role key never exposed to client
+
