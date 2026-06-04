@@ -7,6 +7,7 @@ import react from '@vitejs/plugin-react'
 // Vite build configuration - optimized for production SPA deployment
 // Vite build configuration - optimized for production SPA deployment
 // Vite build configuration - optimized for production SPA deployment
+// Vite build configuration - optimized for production SPA deployment
 export default defineConfig({
   plugins: [react()],
   base: '/',
