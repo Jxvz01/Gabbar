@@ -68,8 +68,10 @@ create policy "Admins can update all reports." on reports
 
 create policy "Users can delete their own reports." on reports
   for delete using (auth.uid() = user_id);
+```
 
--- 4. Notifications Table
+## 3. Notifications Table
+```sql
 create table notifications (
   id uuid default gen_random_uuid() primary key,
   title text not null,
@@ -94,57 +96,56 @@ create policy "Admins can manage all notifications." on notifications
   );
 ```
 
-## 3. Environment Variables
+## 4. Moderation Logs Table
+Stores audit logs for blocked submissions, flagged reports, moderation actions, and spam detection events.
+
+```sql
+create table moderation_logs (
+  id uuid default gen_random_uuid() primary key,
+  event_type text not null, -- 'blocked_submission', 'flagged_report', 'moderation_action', 'spam_detection'
+  user_id uuid references auth.users(id) on delete set null,
+  user_email text,
+  content_type text, -- 'report' or 'comment'
+  title text,
+  content text not null,
+  reasons text[],
+  toxicity_score float,
+  action_taken text not null, -- 'blocked', 'flagged', 'approved_override', 'deleted'
+  admin_id uuid references auth.users(id) on delete set null,
+  timestamp timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- Set up Row Level Security (RLS)
+alter table moderation_logs enable row level security;
+
+-- Only Admins can view all moderation logs
+create policy "Admins can view all moderation logs." on moderation_logs
+  for select using (
+    exists (
+      select 1 from profiles
+      where profiles.id = auth.uid()
+      and profiles.role = 'Admin'
+    )
+  );
+
+-- Anyone can insert moderation logs (so client can report blocked attempts)
+create policy "Anyone can insert moderation logs." on moderation_logs
+  for insert with check (true);
+```
+
+## 5. Environment Variables
 Add these to your `.env` file:
 ```env
 VITE_SUPABASE_URL=your_project_url
 VITE_SUPABASE_ANON_KEY=your_anon_key
 ```
 
-## 5. Google OAuth Setup
+## 6. Google OAuth Setup
 Enable Google provider in Supabase Auth > Providers > Google.
 Add your Client ID and Secret from Google Cloud Console.
 Set callback URL to: https://YOUR_PROJECT_REF.supabase.co/auth/v1/callback
-
 
 ## System Architecture Overview
 - **Frontend**: Vite + React + Framer Motion
 - **Backend**: Supabase (PostgreSQL + Auth + RLS)
-- **Security**: Metal-layer encryption and metadata stripping.
-
-
-## 5. Google OAuth Setup
-Enable Google provider in Supabase Auth > Providers > Google.
-Add your Client ID and Secret from Google Cloud Console.
-Set callback URL to: https://YOUR_PROJECT_REF.supabase.co/auth/v1/callback
-
-
-## 5. Google OAuth Setup
-Enable Google provider in Supabase Auth > Providers > Google.
-Add your Client ID and Secret from Google Cloud Console.
-Set callback URL to: https://YOUR_PROJECT_REF.supabase.co/auth/v1/callback
-
-
-## 5. Google OAuth Setup
-Enable Google provider in Supabase Auth > Providers > Google.
-Add your Client ID and Secret from Google Cloud Console.
-Set callback URL to: https://YOUR_PROJECT_REF.supabase.co/auth/v1/callback
-
-
-## System Architecture Overview
-- **Frontend**: Vite + React + Framer Motion
-- **Backend**: Supabase (PostgreSQL + Auth + RLS)
-- **Security**: Metal-layer encryption and metadata stripping.
-
-
-## 5. Google OAuth Setup
-Enable Google provider in Supabase Auth > Providers > Google.
-Add your Client ID and Secret from Google Cloud Console.
-Set callback URL to: https://YOUR_PROJECT_REF.supabase.co/auth/v1/callback
-
-
-## 5. Google OAuth Setup
-Enable Google provider in Supabase Auth > Providers > Google.
-Add your Client ID and Secret from Google Cloud Console.
-Set callback URL to: https://YOUR_PROJECT_REF.supabase.co/auth/v1/callback
-
+- **Security**: Metal-layer encryption, metadata stripping, and content moderation sentinel.

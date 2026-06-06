@@ -6,4 +6,4 @@ export const CATEGORIES = ['Facilities', 'Harassment', 'Academics', 'Safety', 'S
 /**
  * Valid operational statuses for report lifecycle management.
  */
-export const STATUSES = ['Under Review', 'Resolved', 'Pending'];
+export const STATUSES = ['Under Review', 'Resolved', 'Pending', 'Flagged'];

@@ -3,8 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronUp, ChevronDown, MessageCircle, AlertTriangle, TrendingUp, CheckCircle, Send, Plus, Radio, Shield, Activity, FileText, Lock, Loader2, Edit3, ArrowRight, Zap, LogOut, Menu, X, Bell, User, TrendingUp as TrendingIcon } from 'lucide-react';
 import { sanitize, checkRateLimit } from '../security';
 import { copyToClipboard } from '../utils';
+import { moderateContent } from '../moderation';
 
-export const ReportCard = memo(({ report, onVote, role, activeVote, onAddComment, onDeleteReport, index, currUsername, currentUserEmail, showToast }) => {
+export const ReportCard = memo(({ report, onVote, role, activeVote, onAddComment, onDeleteReport, index, currUsername, currentUserEmail, showToast, onAddCommentBlocked, onAddCommentFlagged }) => {
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
@@ -35,6 +36,20 @@ export const ReportCard = memo(({ report, onVote, role, activeVote, onAddComment
       setErrorMsg(`Wait ${limit.remaining}s before new comment.`);
       setTimeout(() => setErrorMsg(''), 3000);
       return;
+    }
+
+    const modResult = moderateContent('', cleanText);
+    if (!modResult.ok) {
+      setErrorMsg(`${modResult.message} ${modResult.suggestion || ''}`);
+      setTimeout(() => setErrorMsg(''), 6000);
+      if (onAddCommentBlocked) {
+        onAddCommentBlocked(cleanText, modResult.reasons, modResult.toxicityScore);
+      }
+      return;
+    }
+
+    if (modResult.isFlagged && onAddCommentFlagged) {
+      onAddCommentFlagged(cleanText, modResult.reasons, modResult.toxicityScore);
     }
 
     onAddComment(report.id, cleanText, currUsername || 'ANON_OPERATIVE');

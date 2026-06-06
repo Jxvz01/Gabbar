@@ -5,6 +5,7 @@ import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-
 import './index.css';
 import { sanitize, isValidCollegeEmail, checkRateLimit, canPerformAction, anonymizeReport, DEV_WHITELIST } from './security';
 import { supabase } from './supabase';
+import { moderateContent, TOXICITY_THRESHOLD } from './moderation';
 
 
 const t = (str) => str;
@@ -289,10 +290,11 @@ const BottomNav = memo(({ activeTab, onTabChange, onCreateReport }) => (
   </nav>
 ));
 
-const DevPanel = memo(({ reports, users, onDelete, onStatusChange, onBack, onSendNotification, onUpdateBanStatus }) => {
+const DevPanel = memo(({ reports, users, moderationLogs = [], isUsingLocalLogs = false, onDelete, onStatusChange, onSendNotification, onUpdateBanStatus, onLogModerationEvent, onBack, currentUserEmail, currentUser }) => {
   const [activeSubTab, setActiveSubTab] = useState('reports');
   const [notifForm, setNotifForm] = useState({ title: '', content: '', target: 'Everyone' });
   const [isSending, setIsSending] = useState(false);
+  const [selectedAuditLog, setSelectedAuditLog] = useState(null);
 
   const handleBroadcast = async (e) => {
     e.preventDefault();
@@ -301,7 +303,72 @@ const DevPanel = memo(({ reports, users, onDelete, onStatusChange, onBack, onSen
     await onSendNotification(notifForm.title, notifForm.content, targetUserId);
     setNotifForm({ title: '', content: '', target: 'Everyone' });
     setIsSending(false);
-    // showToast replaced alert in parent
+  };
+
+  const flaggedReports = useMemo(() => {
+    return reports.filter(r => r.status === 'Flagged');
+  }, [reports]);
+
+  const nonFlaggedReports = useMemo(() => {
+    return reports.filter(r => r.status !== 'Flagged');
+  }, [reports]);
+
+  const stats = useMemo(() => {
+    const totalBlocked = moderationLogs.filter(l => l.action_taken === 'blocked').length;
+    const totalFlagged = reports.filter(r => r.status === 'Flagged').length;
+    const totalOverride = moderationLogs.filter(l => l.action_taken === 'approved_override').length;
+    const spamCount = moderationLogs.filter(l => l.event_type === 'spam_detection').length;
+    const piiCount = moderationLogs.filter(l => l.reasons?.some(r => r.toLowerCase().includes('contains')) || l.event_type === 'pii_detected').length;
+    
+    const totalFlagAndOverride = totalFlagged + totalOverride;
+    const overrideRate = totalFlagAndOverride > 0 ? Math.round((totalOverride / totalFlagAndOverride) * 100) : 0;
+
+    return {
+      totalBlocked,
+      totalFlagged,
+      totalOverride,
+      spamCount,
+      piiCount,
+      overrideRate
+    };
+  }, [reports, moderationLogs]);
+
+  const handleOverrideFlag = async (report) => {
+    await onStatusChange(report.id, 'Pending');
+    if (onLogModerationEvent) {
+      await onLogModerationEvent(
+        'moderation_action',
+        report.user_id,
+        null,
+        'report',
+        report.title,
+        report.content,
+        ['Admin Override False Positive'],
+        report.toxicity_score || 0,
+        'approved_override',
+        currentUser?.id || null
+      );
+    }
+  };
+
+  const handlePurgeFlagged = async (report) => {
+    if (window.confirm("Purge abusive flagged report permanently?")) {
+      await onDelete(report.id);
+      if (onLogModerationEvent) {
+        await onLogModerationEvent(
+          'moderation_action',
+          report.user_id,
+          null,
+          'report',
+          report.title,
+          report.content,
+          ['Admin Purged Abusive Flagged Content'],
+          report.toxicity_score || 0,
+          'deleted',
+          currentUser?.id || null
+        );
+      }
+    }
   };
 
   return (
@@ -314,8 +381,31 @@ const DevPanel = memo(({ reports, users, onDelete, onStatusChange, onBack, onSen
         <button onClick={onBack} className="btn-v15 resolve" style={{ padding: '8px 16px', fontSize: '12px', background: 'rgba(255,255,255,0.1)', color: '#ffffff', border: '1px solid rgba(255,255,255,0.2)' }}>← Back</button>
       </div>
 
-      <div className="flex-v6" style={{ justifyContent: 'flex-start', gap: '16px', marginBottom: '32px' }}>
-        {['reports', 'users', 'broadcast'].map(tab => (
+      {isUsingLocalLogs && (
+        <div style={{
+          background: 'rgba(245, 158, 11, 0.1)',
+          border: '1px solid rgba(245, 158, 11, 0.3)',
+          color: '#fbbf24',
+          padding: '16px',
+          borderRadius: '12px',
+          marginBottom: '32px',
+          fontSize: '13px',
+          lineHeight: '1.6',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '8px'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '700' }}>
+            <AlertTriangle size={18} /> DEVELOPER NOTICE: LOCAL STORAGE FALLBACK ACTIVE
+          </div>
+          <div>
+            The <code>moderation_logs</code> table was not detected in the Supabase schema cache. Audit logs are temporarily persisted in the local browser. To enable server-side database logging, please run the SQL setup query found in <a href="file:///c:/Users/Shubha/Desktop/Projects/Gabbar/SUPABASE_SETUP.md" style={{ color: '#fbbf24', textDecoration: 'underline', fontWeight: '700' }}>SUPABASE_SETUP.md</a>.
+          </div>
+        </div>
+      )}
+
+      <div className="flex-v6 hide-scrollbar" style={{ justifyContent: 'flex-start', gap: '12px', marginBottom: '32px', overflowX: 'auto', paddingBottom: '8px' }}>
+        {['reports', 'flagged', 'users', 'broadcast', 'audit', 'stats'].map(tab => (
           <button
             key={tab}
             onClick={() => setActiveSubTab(tab)}
@@ -323,10 +413,10 @@ const DevPanel = memo(({ reports, users, onDelete, onStatusChange, onBack, onSen
               background: activeSubTab === tab ? '#ffffff' : 'rgba(255,255,255,0.02)',
               color: activeSubTab === tab ? '#000' : '#a1a1aa',
               border: '1px solid ' + (activeSubTab === tab ? '#ffffff' : 'rgba(255,255,255,0.08)'),
-              padding: '10px 20px', borderRadius: '8px', fontSize: '12px', fontWeight: '600', letterSpacing: '0', textTransform: 'capitalize', cursor: 'pointer'
+              padding: '10px 20px', borderRadius: '8px', fontSize: '12px', fontWeight: '600', letterSpacing: '0', textTransform: 'capitalize', cursor: 'pointer', flexShrink: 0
             }}
           >
-            {tab}
+            {tab === 'flagged' ? `Flagged Reports (${flaggedReports.length})` : tab}
           </button>
         ))}
       </div>
@@ -344,7 +434,7 @@ const DevPanel = memo(({ reports, users, onDelete, onStatusChange, onBack, onSen
               </tr>
             </thead>
             <tbody>
-              {reports.map((r) => (
+              {nonFlaggedReports.map((r) => (
                 <tr key={r.id} className="admin-row-v15">
                   <td className="admin-td-v15">
                     <div style={{ fontWeight: '800', color: '#fff' }}>{r.title}</div>
@@ -368,6 +458,61 @@ const DevPanel = memo(({ reports, users, onDelete, onStatusChange, onBack, onSen
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {activeSubTab === 'flagged' && (
+        <div className="admin-view-v15">
+          <h2 className="dev-h2" style={{ fontSize: '16px', marginBottom: '8px' }}>{t('Flagged Content for Review')}</h2>
+          <p className="dev-p" style={{ marginBottom: '24px' }}>Reports automatically flagged as potentially toxic, defamatory, or targeting individuals.</p>
+          
+          {flaggedReports.length === 0 ? (
+            <div style={{ padding: '40px', textAlign: 'center', color: '#71717a' }}>No flagged reports currently pending review.</div>
+          ) : (
+            <table className="admin-table-v15" style={{ display: 'table' }}>
+              <thead>
+                <tr>
+                  <th className="admin-th-v15">{t('Flagged Report')}</th>
+                  <th className="admin-th-v15">{t('Details & Content')}</th>
+                  <th className="admin-th-v15">{t('Review Actions')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {flaggedReports.map((r) => (
+                  <tr key={r.id} className="admin-row-v15">
+                    <td className="admin-td-v15" style={{ verticalAlign: 'top', width: '250px' }}>
+                      <div style={{ fontWeight: '800', color: '#fff' }}>{r.title}</div>
+                      <div style={{ fontSize: '10px', color: '#ef4444', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <AlertTriangle size={10} /> Flagged Status
+                      </div>
+                      <div style={{ fontSize: '10px', color: '#52525b', marginTop: '4px' }}>Category: {r.category}</div>
+                    </td>
+                    <td className="admin-td-v15" style={{ verticalAlign: 'top' }}>
+                      <p style={{ color: '#d4d4d8', fontSize: '12px', lineHeight: '1.5', whiteSpace: 'pre-wrap', margin: 0 }}>{r.content}</p>
+                    </td>
+                    <td className="admin-td-v15" style={{ verticalAlign: 'middle', width: '220px' }}>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <button
+                          onClick={() => handleOverrideFlag(r)}
+                          className="btn-admin-v15 resolve"
+                          style={{ borderColor: '#10b981', color: '#10b981', background: 'rgba(16,185,129,0.05)' }}
+                        >
+                          Override & Approve
+                        </button>
+                        <button
+                          onClick={() => handlePurgeFlagged(r)}
+                          className="btn-admin-v15"
+                          style={{ borderColor: '#ef4444', color: '#ef4444', background: 'rgba(239,68,68,0.05)' }}
+                        >
+                          Purge
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       )}
 
@@ -461,6 +606,164 @@ const DevPanel = memo(({ reports, users, onDelete, onStatusChange, onBack, onSen
           </form>
         </div>
       )}
+
+      {activeSubTab === 'audit' && (
+        <div className="admin-view-v15">
+          <h2 className="dev-h2" style={{ fontSize: '16px', marginBottom: '8px' }}>Security & Moderation Audit Logs</h2>
+          <p className="dev-p" style={{ marginBottom: '24px' }}>Real-time logs of blocked content, automated flags, spam flags, and administrator actions.</p>
+          
+          {moderationLogs.length === 0 ? (
+            <div style={{ padding: '40px', textAlign: 'center', color: '#71717a' }}>No security audit logs recorded yet.</div>
+          ) : (
+            <table className="admin-table-v15" style={{ display: 'table' }}>
+              <thead>
+                <tr>
+                  <th className="admin-th-v15">Time & Event</th>
+                  <th className="admin-th-v15">Content Type</th>
+                  <th className="admin-th-v15">Toxicity</th>
+                  <th className="admin-th-v15">Reasons Triggered</th>
+                  <th className="admin-th-v15">Action Taken</th>
+                  <th className="admin-th-v15">Details</th>
+                </tr>
+              </thead>
+              <tbody>
+                {moderationLogs.map((log) => (
+                  <tr key={log.id} className="admin-row-v15">
+                    <td className="admin-td-v15">
+                      <div style={{ color: '#fff', fontSize: '12px' }}>{new Date(log.timestamp).toLocaleString()}</div>
+                      <div style={{ fontSize: '9px', color: '#a1a1aa', textTransform: 'uppercase', marginTop: '2px', fontWeight: 'bold' }}>{log.event_type.replace(/_/g, ' ')}</div>
+                    </td>
+                    <td className="admin-td-v15" style={{ textTransform: 'capitalize' }}>{log.content_type}</td>
+                    <td className="admin-td-v15">
+                      <span style={{ 
+                        color: log.toxicity_score >= 60 ? '#ef4444' : log.toxicity_score >= 35 ? '#f59e0b' : '#10b981',
+                        fontWeight: 'bold'
+                      }}>
+                        {log.toxicity_score}%
+                      </span>
+                    </td>
+                    <td className="admin-td-v15">
+                      <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                        {(log.reasons || []).map((r, idx) => (
+                          <span key={idx} className="badge-v7" style={{ background: 'rgba(239,68,68,0.1)', color: '#fca5a5', border: '1px solid rgba(239,68,68,0.2)', fontSize: '9px', padding: '2px 6px' }}>{r}</span>
+                        ))}
+                        {(log.reasons || []).length === 0 && <span style={{ color: '#71717a' }}>-</span>}
+                      </div>
+                    </td>
+                    <td className="admin-td-v15">
+                      <span className={`badge-v15 ${log.action_taken === 'blocked' ? 'badge-critical' : log.action_taken === 'flagged' ? 'badge-warn' : 'badge-admin'}`}>
+                        {log.action_taken.toUpperCase()}
+                      </span>
+                    </td>
+                    <td className="admin-td-v15">
+                      <button 
+                        onClick={() => setSelectedAuditLog(log)}
+                        className="btn-admin-v15"
+                        style={{ padding: '4px 8px', fontSize: '10px' }}
+                      >
+                        Inspect
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      )}
+
+      {activeSubTab === 'stats' && (
+        <div className="admin-view-v15">
+          <h2 className="dev-h2" style={{ fontSize: '16px', marginBottom: '8px' }}>Security Metrics Overview</h2>
+          <p className="dev-p" style={{ marginBottom: '32px' }}>Operational telemetry for abuse prevention algorithms and policy enforcement.</p>
+
+          <div className="admin-stat-grid-v15" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
+            <div className="admin-stat-v15">
+              <div className="val">{stats.totalBlocked}</div>
+              <div className="lab">Blocked Submissions</div>
+            </div>
+            <div className="admin-stat-v15">
+              <div className="val">{stats.totalFlagged}</div>
+              <div className="lab">Active Flags Pending Review</div>
+            </div>
+            <div className="admin-stat-v15">
+              <div className="val">{stats.overrideRate}%</div>
+              <div className="lab">False Positive Override Rate</div>
+            </div>
+            <div className="admin-stat-v15">
+              <div className="val">{stats.spamCount}</div>
+              <div className="lab">Spam Events Blocked</div>
+            </div>
+            <div className="admin-stat-v15">
+              <div className="val">{stats.piiCount}</div>
+              <div className="lab">PII Violations Scrubbed</div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Inspect Log Modal */}
+      <AnimatePresence>
+        {selectedAuditLog && (
+          <div className="modal-overlay-v9 anim-fade-in" onClick={() => setSelectedAuditLog(null)} style={{ zIndex: 1100 }}>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="modal-glass-v9"
+              onClick={e => e.stopPropagation()}
+              style={{ maxWidth: '600px', width: '100%' }}
+            >
+              <div className="flex-v6" style={{ justifyContent: 'space-between', marginBottom: '20px', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '12px' }}>
+                <h3 style={{ color: '#fff', fontSize: '18px', fontWeight: 'bold' }}>Audit Log Details</h3>
+                <button onClick={() => setSelectedAuditLog(null)} style={{ background: 'transparent', border: 'none', color: '#fff', cursor: 'pointer' }}><X size={18} /></button>
+              </div>
+
+              <div className="v-stack" style={{ gap: '16px', alignItems: 'stretch' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', fontSize: '13px', gap: '8px' }}>
+                  <span style={{ color: '#71717a' }}>Timestamp:</span>
+                  <span style={{ color: '#fff' }}>{new Date(selectedAuditLog.timestamp).toLocaleString()}</span>
+                  
+                  <span style={{ color: '#71717a' }}>Event Type:</span>
+                  <span style={{ color: '#fff', textTransform: 'uppercase', fontWeight: 'bold' }}>{selectedAuditLog.event_type}</span>
+                  
+                  <span style={{ color: '#71717a' }}>Content Type:</span>
+                  <span style={{ color: '#fff', textTransform: 'capitalize' }}>{selectedAuditLog.content_type}</span>
+                  
+                  <span style={{ color: '#71717a' }}>Action Taken:</span>
+                  <span style={{ color: '#fff' }}>
+                    <span className={`badge-v15 ${selectedAuditLog.action_taken === 'blocked' ? 'badge-critical' : selectedAuditLog.action_taken === 'flagged' ? 'badge-warn' : 'badge-admin'}`}>
+                      {selectedAuditLog.action_taken.toUpperCase()}
+                    </span>
+                  </span>
+                  
+                  <span style={{ color: '#71717a' }}>Toxicity Score:</span>
+                  <span style={{ color: selectedAuditLog.toxicity_score >= 60 ? '#ef4444' : '#10b981', fontWeight: 'bold' }}>{selectedAuditLog.toxicity_score}%</span>
+
+                  <span style={{ color: '#71717a' }}>Reasons:</span>
+                  <span style={{ color: '#fff' }}>{selectedAuditLog.reasons?.join(', ') || '-'}</span>
+                </div>
+
+                {selectedAuditLog.title && (
+                  <div className="v-stack" style={{ alignItems: 'flex-start', gap: '4px' }}>
+                    <span style={{ color: '#71717a', fontSize: '12px' }}>Report Subject:</span>
+                    <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', padding: '10px', borderRadius: '6px', width: '100%', color: '#fff', fontWeight: 'bold' }}>
+                      {selectedAuditLog.title}
+                    </div>
+                  </div>
+                )}
+
+                <div className="v-stack" style={{ alignItems: 'flex-start', gap: '4px' }}>
+                  <span style={{ color: '#71717a', fontSize: '12px' }}>Submitted Text Content:</span>
+                  <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', padding: '12px', borderRadius: '6px', width: '100%', color: '#d4d4d8', fontSize: '13px', lineHeight: '1.6', whiteSpace: 'pre-wrap', maxOverflow: '200px', overflowY: 'auto' }}>
+                    {selectedAuditLog.content}
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 });
@@ -856,7 +1159,7 @@ const AuthPage = memo(({ initialMode = 'login', onAuthSuccess, onGoogleAuth, onB
   );
 });
 
-const Dashboard = memo(({ reports, role, onLogout, onVote, onAddReport, onAddComment, onStatusChange, onDeleteReport, userVotes, winWidth, currentUser, onUpdateUsername, currentUserEmail, notifications, isLoading, showToast }) => {
+const Dashboard = memo(({ reports, role, onLogout, onVote, onAddReport, onAddComment, onStatusChange, onDeleteReport, userVotes, winWidth, currentUser, onUpdateUsername, currentUserEmail, notifications, isLoading, showToast, moderationWarning, setModerationWarning, onAddCommentBlocked, onAddCommentFlagged }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -938,6 +1241,7 @@ const Dashboard = memo(({ reports, role, onLogout, onVote, onAddReport, onAddCom
 
   const filteredReports = useMemo(() => {
     return reports.filter(r => {
+      if (r.status === 'Flagged') return false;
       const matchSearch = r.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           r.content.toLowerCase().includes(searchTerm.toLowerCase());
       const matchCategory = activeCategory === 'All' || r.category === activeCategory;
@@ -945,17 +1249,26 @@ const Dashboard = memo(({ reports, role, onLogout, onVote, onAddReport, onAddCom
     });
   }, [reports, searchTerm, activeCategory]);
 
-  const handleSubmit = (e) => {
+  useEffect(() => {
+    if (isFormOpen) {
+      setModerationWarning(null);
+    }
+  }, [isFormOpen, setModerationWarning]);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setSubState('loading');
-    setTimeout(() => {
-      onAddReport(e);
+    
+    const success = await onAddReport(e);
+    if (success) {
       setSubState('success');
       setTimeout(() => {
         setIsFormOpen(false);
         setSubState('idle');
       }, 1500);
-    }, 1200);
+    } else {
+      setSubState('idle');
+    }
   };
 
   return (
@@ -1117,6 +1430,8 @@ const Dashboard = memo(({ reports, role, onLogout, onVote, onAddReport, onAddCom
               currUsername={currentUser?.username}
               currentUserEmail={currentUserEmail}
               showToast={showToast}
+              onAddCommentBlocked={onAddCommentBlocked}
+              onAddCommentFlagged={onAddCommentFlagged}
             />
           ))}
 
@@ -1407,6 +1722,35 @@ const Dashboard = memo(({ reports, role, onLogout, onVote, onAddReport, onAddCom
                   />
                 </div>
 
+                {moderationWarning && (
+                  <div style={{
+                    background: 'rgba(239, 68, 68, 0.1)',
+                    border: '1px solid rgba(239, 68, 68, 0.25)',
+                    padding: '16px',
+                    borderRadius: '8px',
+                    marginTop: '16px',
+                    marginBottom: '8px',
+                    textAlign: 'left'
+                  }}>
+                    <div style={{ color: '#fca5a5', fontWeight: 'bold', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+                      <AlertTriangle size={14} /> Violation Detected
+                    </div>
+                    <p style={{ color: '#f87171', fontSize: '12px', margin: '0 0 10px 0', lineHeight: '1.4' }}>
+                      {moderationWarning.message}
+                    </p>
+                    {moderationWarning.suggestion && (
+                      <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '8px', marginTop: '8px' }}>
+                        <div style={{ color: '#818cf8', fontWeight: 'bold', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '4px' }}>
+                          💡 Suggestion:
+                        </div>
+                        <p style={{ color: '#a5b4fc', fontSize: '11px', margin: 0, lineHeight: '1.4' }}>
+                          {moderationWarning.suggestion}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 <button type="submit" className="btn-gradient-v9" disabled={subState !== 'idle'} style={{ marginTop: '24px' }}>
                   {subState === 'idle' && "Submit Report"}
                   {subState === 'loading' && <span className="flex-v6" style={{ gap: '12px' }}><Loader2 className="anim-spin" size={18} /> Submitting...</span>}
@@ -1456,6 +1800,105 @@ const App = () => {
   const [session, setSession] = useState(null);
 
   const [isDevRoute, setIsDevRoute] = useState(false);
+
+  // --- CONTENT MODERATION SYSTEM STATE ---
+  const [moderationLogs, setModerationLogs] = useState([]);
+  const [isUsingLocalLogs, setIsUsingLocalLogs] = useState(false);
+  const [moderationWarning, setModerationWarning] = useState(null);
+
+  const fetchModerationLogs = useCallback(async () => {
+    const { data, error } = await supabase
+      .from('moderation_logs')
+      .select('*')
+      .order('timestamp', { ascending: false });
+
+    if (error) {
+      console.warn('Failed to fetch moderation_logs from Supabase, pulling from localStorage:', error.message);
+      try {
+        const localLogs = JSON.parse(localStorage.getItem('gabbar_moderation_logs') || '[]');
+        setModerationLogs(localLogs);
+        setIsUsingLocalLogs(true);
+      } catch (e) {
+        console.error('Local storage parse error:', e);
+      }
+    } else {
+      setModerationLogs(data || []);
+      setIsUsingLocalLogs(false);
+    }
+  }, []);
+
+  const logModerationEvent = useCallback(async (eventType, userId, userEmail, contentType, title, content, reasons, toxicityScore, actionTaken, adminId = null) => {
+    const logData = {
+      event_type: eventType,
+      user_id: userId || null,
+      user_email: userEmail || null,
+      content_type: contentType,
+      title: title || null,
+      content: content,
+      reasons: reasons || [],
+      toxicity_score: toxicityScore || 0,
+      action_taken: actionTaken,
+      admin_id: adminId || null,
+      timestamp: new Date().toISOString()
+    };
+
+    const { error } = await supabase
+      .from('moderation_logs')
+      .insert([logData]);
+
+    if (error) {
+      console.warn("Failed to write to DB moderation_logs, writing to localStorage fallback:", error.message);
+      try {
+        const localLogs = JSON.parse(localStorage.getItem('gabbar_moderation_logs') || '[]');
+        const newLog = {
+          id: `local_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+          ...logData
+        };
+        localLogs.unshift(newLog);
+        localStorage.setItem('gabbar_moderation_logs', JSON.stringify(localLogs.slice(0, 500)));
+        setModerationLogs(localLogs);
+        setIsUsingLocalLogs(true);
+      } catch (e) {
+        console.error("Local storage logging failed:", e);
+      }
+    } else {
+      fetchModerationLogs();
+    }
+  }, [fetchModerationLogs]);
+
+  const handleAddCommentBlocked = useCallback(async (text, reasons, toxicityScore) => {
+    const { data: { session: activeSession } } = await supabase.auth.getSession();
+    const userId = activeSession?.user?.id || null;
+    const userEmail = activeSession?.user?.email || null;
+    await logModerationEvent(
+      'blocked_submission',
+      userId,
+      userEmail,
+      'comment',
+      '',
+      text,
+      reasons,
+      toxicityScore,
+      'blocked'
+    );
+  }, [logModerationEvent]);
+
+  const handleAddCommentFlagged = useCallback(async (text, reasons, toxicityScore) => {
+    const { data: { session: activeSession } } = await supabase.auth.getSession();
+    const userId = activeSession?.user?.id || null;
+    const userEmail = activeSession?.user?.email || null;
+    await logModerationEvent(
+      'flagged_report',
+      userId,
+      userEmail,
+      'comment',
+      '',
+      text,
+      reasons,
+      toxicityScore,
+      'flagged'
+    );
+  }, [logModerationEvent]);
 
   useEffect(() => {
     // Detect /dev route
@@ -1581,8 +2024,9 @@ const App = () => {
   useEffect(() => {
     if (userRole === 'Admin' && location.pathname === '/dev') {
       fetchAllUsers();
+      fetchModerationLogs();
     }
-  }, [userRole, location.pathname]);
+  }, [userRole, location.pathname, fetchModerationLogs]);
 
   useEffect(() => {
     const handleResize = () => setWinWidth(window.innerWidth);
@@ -1618,16 +2062,81 @@ const App = () => {
 
   const addReport = useCallback(async (e) => {
     e.preventDefault();
-    if (!canPerformAction(userRole, 'submit_report')) return;
+    setModerationWarning(null);
+    if (!canPerformAction(userRole, 'submit_report')) return false;
 
     const { data: { session } } = await supabase.auth.getSession();
-    if (!session) return;
+    if (!session) return false;
 
+    const rawTitle = e.target.title.value;
+    const rawContent = e.target.content.value;
+
+    // 1. Rate Limiting Check
+    const now = Date.now();
+    const oneHourAgo = now - 60 * 60 * 1000;
+    const oneDayAgo = now - 24 * 60 * 60 * 1000;
+    
+    const userHourly = reports.filter(r => r.user_id === session.user.id && new Date(r.timestamp).getTime() > oneHourAgo);
+    const userDaily = reports.filter(r => r.user_id === session.user.id && new Date(r.timestamp).getTime() > oneDayAgo);
+
+    if (userHourly.length >= 3) {
+      showToast('RATE_LIMIT_EXCEEDED', 'Hourly limit reached. Max 3 reports per hour.', 'error');
+      await logModerationEvent(
+        'spam_detection',
+        session.user.id,
+        session.user.email,
+        'report',
+        rawTitle,
+        rawContent,
+        ['Hourly rate limit reached (3/hour)'],
+        0,
+        'blocked'
+      );
+      return false;
+    }
+
+    if (userDaily.length >= 10) {
+      showToast('RATE_LIMIT_EXCEEDED', 'Daily limit reached. Max 10 reports per day.', 'error');
+      await logModerationEvent(
+        'spam_detection',
+        session.user.id,
+        session.user.email,
+        'report',
+        rawTitle,
+        rawContent,
+        ['Daily rate limit reached (10/day)'],
+        0,
+        'blocked'
+      );
+      return false;
+    }
+
+    // 2. Content Moderation Check
+    const modResult = moderateContent(rawTitle, rawContent, reports);
+    if (!modResult.ok) {
+      setModerationWarning({
+        message: modResult.message,
+        suggestion: modResult.suggestion
+      });
+      await logModerationEvent(
+        'blocked_submission',
+        session.user.id,
+        session.user.email,
+        'report',
+        rawTitle,
+        rawContent,
+        modResult.reasons,
+        modResult.toxicityScore || 0,
+        'blocked'
+      );
+      return false;
+    }
+
+    // 3. Media Upload (if any)
     const file = e.target.image.files[0];
     let imageUrl = null;
 
     if (file) {
-      // METADATA_STRIPPING_PROTOCOL: Pre-flight check
       const fileName = `intel_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('intel-media')
@@ -1636,7 +2145,7 @@ const App = () => {
       if (uploadError) {
         console.error('Upload error:', uploadError);
         showToast('STRAPPING_ERROR', 'Media transmission failed.', 'error');
-        return;
+        return false;
       }
       
       const { data: { publicUrl } } = supabase.storage
@@ -1646,15 +2155,16 @@ const App = () => {
       imageUrl = publicUrl;
     }
 
+    const reportStatus = modResult.isFlagged ? 'Flagged' : 'Pending';
+
     const newReport = {
-      title: sanitize(e.target.title.value),
+      title: sanitize(rawTitle),
       category: e.target.category.value,
-      content: sanitize(e.target.content.value),
+      content: sanitize(rawContent),
       user_id: session.user.id,
-      // ANONYMITY_PROTOCOL: author_email removed to prevent traceability
       author_name: currentUser.username,
       upvotes: 0,
-      status: 'Pending',
+      status: reportStatus,
       timestamp: new Date().toISOString(),
       comments: [],
       image_url: imageUrl
@@ -1667,10 +2177,27 @@ const App = () => {
     if (error) {
       console.error('Error adding report:', error);
       showToast('SYSTEM_ERROR', 'Failed to anchor intelligence log.', 'error');
+      return false;
     } else {
-      showToast('INTEL_LOGGED', 'Signal transmitted securely.', 'success');
+      if (modResult.isFlagged) {
+        showToast('INTEL_LOGGED', 'Signal transmitted. Pending security verification.', 'info');
+        await logModerationEvent(
+          'flagged_report',
+          session.user.id,
+          session.user.email,
+          'report',
+          rawTitle,
+          rawContent,
+          modResult.reasons,
+          modResult.toxicityScore || 0,
+          'flagged'
+        );
+      } else {
+        showToast('INTEL_LOGGED', 'Signal transmitted securely.', 'success');
+      }
+      return true;
     }
-  }, [userRole, currentUser.username, showToast]);
+  }, [userRole, currentUser.username, reports, showToast, logModerationEvent]);
 
   const handleVote = useCallback(async (reportId, type) => {
     const report = reports.find(r => r.id === reportId);
@@ -1914,6 +2441,10 @@ const App = () => {
               onUpdateUsername={handleUpdateUsername}
               currentUserEmail={currentUserEmail}
               notifications={notifications}
+              moderationWarning={moderationWarning}
+              setModerationWarning={setModerationWarning}
+              onAddCommentBlocked={handleAddCommentBlocked}
+              onAddCommentFlagged={handleAddCommentFlagged}
             />
           } />
           <Route path="/notifications" element={
@@ -1934,6 +2465,10 @@ const App = () => {
               onUpdateUsername={handleUpdateUsername}
               currentUserEmail={currentUserEmail}
               notifications={notifications}
+              moderationWarning={moderationWarning}
+              setModerationWarning={setModerationWarning}
+              onAddCommentBlocked={handleAddCommentBlocked}
+              onAddCommentFlagged={handleAddCommentFlagged}
             />
           } />
           <Route path="/profile" element={
@@ -1954,6 +2489,10 @@ const App = () => {
               onUpdateUsername={handleUpdateUsername}
               currentUserEmail={currentUserEmail}
               notifications={notifications}
+              moderationWarning={moderationWarning}
+              setModerationWarning={setModerationWarning}
+              onAddCommentBlocked={handleAddCommentBlocked}
+              onAddCommentFlagged={handleAddCommentFlagged}
             />
           } />
           <Route path="/dev/auth" element={
@@ -1967,11 +2506,16 @@ const App = () => {
               <DevPanel
                 reports={reports}
                 users={registeredUsers}
+                moderationLogs={moderationLogs}
+                isUsingLocalLogs={isUsingLocalLogs}
                 onDelete={handleDeleteReport}
                 onStatusChange={handleStatusChange}
                 onSendNotification={handleSendNotification}
                 onUpdateBanStatus={handleUpdateBanStatus}
+                onLogModerationEvent={logModerationEvent}
                 onBack={() => navigate('/home')}
+                currentUserEmail={currentUserEmail}
+                currentUser={currentUser}
               />
             ) : (
               <Navigate to="/dev/auth" />
